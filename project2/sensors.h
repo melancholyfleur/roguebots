@@ -1,11 +1,9 @@
-/*
+/* *********************
+ *  Project 2
+ *  Marylou Kunkle
+ *  Lenny Kramer
  *  sensors.h
- *  
- *
- *  Created by Marylou Kunkle on 2/24/09.
- *  Copyright 2009 __MyCompanyName__. All rights reserved.
- *
- */
+ ********************* */
 
 #ifndef SENSORSH
 #define SENSORSH
@@ -21,16 +19,20 @@
 #define PIDA_KI 0.0001
 #define PIDA_KD 0.0
 
-#define MOVE1 3.3
-#define ANGLE1 0.0
-#define TURN1 (M_PI/2)
-#define MOVE2 3.04
-#define ANGLE2 0.0
-#define TURN2 (M_PI/2.5)
-#define MOVE3 3.8
-#define ANGLE3 0.0
-
 #define TAPS  4			// how many filter taps
+
+typedef struct
+{
+	float x;
+	float y;
+} waypoint;				// waypoint is an (x,y) coordinate on plane
+
+typedef struct 
+{
+	float    coefficients[TAPS];
+  	unsigned next_sample;
+  	float    samples[TAPS];
+} filter_t;
 
 /* GLOBAL VARS */
 playerc_client_t *client;         	// client used to connect to robot
@@ -40,29 +42,39 @@ playerc_sonar_t *turret_sonar;		// sonar client
 playerc_ir_t *turret_ir;			// ir client
 float prev_error   = 0.0;         // previous error for x/y destination
 float prev_error_a = 0.0;         // previous error for angle
-float error_x      = 0.0;         // current x error
-float error_y      = 0.0;         // current y error
+float error_dist   = 0.0;         // current x error
 float error_a      = 0.0;         // current angle error
 float ir_r         = 0.0;         // right IR value
 float ir_l         = 0.0;         // left IR value
 float pid          = 0.0;         // pid controller value
 float vx           = 0.0;         // x velocity
 float va           = 0.0;         // angle velocity
+waypoint waypoints[8];            // array of targets
 
-typedef struct 
-{
-	float    coefficients[TAPS];
-  	unsigned next_sample;
-  	float    samples[TAPS];
-} filter_t;
+waypoints[0].x = 0.0;				//origin
+waypoints[0].y = 0.0;
+waypoints[1].x = 7.3;
+waypoints[1].y = 0.0;
+waypoints[2].x = 7.62 + 7.3;
+waypoints[2].y = 7.62;
+waypoints[3].x = 18.89 + 7.62 + 7.3;
+waypoints[3].y = 7.62;
+waypoints[4].x = 18.89 + 7.62 + 7.3;
+waypoints[4].y = 7.62 - 10.668;
+waypoints[5].x = 18.89 + 7.62 + 7.3 + 3.9624;
+waypoints[5].y = 7.62 - 10.668 - 9.144;
+waypoints[6].x = 18.89 + 7.62 + 7.3 + 3.9624 - 22.86;
+waypoints[6].y = 7.62 - 10.668 - 9.144;
+waypoints[7].x = 18.89 + 7.62 + 7.3 + 3.9624 - 22.86;
+waypoints[7].y = 7.62 - 10.668 - 9.144 + 12.192;
 
 filter_t *firFilterCreate();
 float firFilter(filter_t*, float);
-float error_tx(playerc_position2d_t*, float);
+float error_t(playerc_position2d_t*, waypoint);
 float error_ta(playerc_position2d_t*, float);
 float PID(float);
 float PID_A(float);
-float Move(playerc_client_t*, float, float);
+float Move(playerc_client_t*, waypoint);
 float Turn(playerc_client_t*, float);
 float error_ir_LEFT();
 float error_ir_RIGHT();

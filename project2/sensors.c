@@ -1,8 +1,8 @@
 /* *********************
  *  Project 2
- *  Mary-Lou Kunkle
+ *  Marylou Kunkle
  *  Lenny Kramer
- *  
+ *  sensors.c
  ********************* */
 
 #include "sensors.h"
@@ -52,18 +52,19 @@ int main(int argc, const char **argv)
     	return -1;
   	}
 
- 	
 
 	// Enable the robots motors
 	playerc_position2d_enable(position2d, 1);
 	playerc_client_read(client);
 	
 	//robot motions
-	Move(client, MOVE1, ANGLE1);
-	Turn(client, TURN1);
-	Move(client, MOVE2, ANGLE2);
-	Turn(client, TURN2);
-	Move(client, MOVE3, ANGLE3);
+	Move(client, waypoint[1]);
+	Move(client, waypoint[2]);
+	Move(client, waypoint[3]);
+	Move(client, waypoint[4]);
+	Move(client, waypoint[5]);
+	Move(client, waypoint[6]);
+	Move(client, waypoint[7]);
 	//
 	
 	// Shutdown and tidy up
@@ -83,12 +84,9 @@ int main(int argc, const char **argv)
  * position2d: current px,py,pa positions for robot
  * targetX:    x-coordinate destination
  */
-float error_tx(playerc_position2d_t *position2d, float targetX)
+float error_t(playerc_position2d_t *position2d, waypoint point)
 {
-  if(targetX < 0.0)
-    return position2d->px - targetX;
-
-  return targetX - position2d->px; 
+	return sqrt(pow((point.x - position2d->px), 2.0) + pow((point.y - position2d->py), 2.0))
 }
 
 /* error_ta()
@@ -152,18 +150,20 @@ float PID_A(float pid_error_a)
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-float Move(playerc_client_t *client, float distance, float angle)
+float Move(playerc_client_t *client, waypoint point)
 {
-	printf("Enter Move\n");
+	printf("Enter Move\n");  
 
-	error_x = error_tx(position2d, distance);   
+	error_dist = error_t(position2d, point);
 
-	while(error_x > 0.1)
+	while(error_dist > 0.5)
 	{
-		error_x = error_tx(position2d, distance);
-		vx = PID(error_x);
+		//use awesome filter stuffs
+		
+		error_dist = error_t(position2d, point);
+		vx = PID(point);
 
-		error_a = error_ta(position2d, angle);
+		error_a = error_ta(position2d);
 		va = PID_A(error_a);
 
 		playerc_position2d_set_cmd_vel(position2d, vx, 0, va, 1.0);
@@ -175,9 +175,12 @@ float Move(playerc_client_t *client, float distance, float angle)
 		}
 		playerc_client_read(client);
 		printf("Moving : x = %f y = %f a = %f\n", position2d->px, position2d->py, position2d->pa);   
-		printf("ir = %f %f sonar = %f %f\n",turret_ir->ranges.ranges[0], turret_ir->ranges.ranges[1],
+		printf("ir = %f %f sonar = %f %f\n",turret_ir->data.ranges[0], turret_ir->data.ranges[1],
 			 turret_sonar->scan[0], turret_sonar->scan[1]);
 	}
+	
+	
+	
 	printf("Leave Move\n");
 }
 
@@ -244,7 +247,7 @@ float firFilter(filter_t *f, float val)
      i tracks the next coefficient
      j tracks the samples w/wrap-around */
   	for( i=0,j=f->next_sample; i<TAPS; i++) {
-    	sum += f->coefficients[i]*f->samples[j++];
+    	sum += f->coefficients[i]*f->samples[j--];
     	if(j==TAPS)  j=0;
   	}
   	if(++(f->next_sample) == TAPS) f->next_sample = 0;
