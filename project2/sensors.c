@@ -9,73 +9,63 @@
 
 int main(int argc, const char **argv)
 {
-	// Create a client object and connect to the server; the server must
-  	// be running on "localhost" at port 6665
-  	client = playerc_client_create(NULL, "gort", 9876);
-  	if (playerc_client_connect(client) != 0)
-  	{
-    	fprintf(stderr, "error: %s\n", playerc_error_str());
-    	return -1;
-  	}
+	/* allocate device objects */
+	c = create_create("/dev/ttyS2");
+	r = turret_create();
 
-  	// Create a bumper proxy (device id "bumper:0" and subscribe
-   	// in read mode
-  	bumper = playerc_bumper_create(client, 0);
-  	if(playerc_bumper_subscribe(bumper,PLAYERC_OPEN_MODE)!= 0)
-  	{
-    	fprintf(stderr, "error: %s\n", playerc_error_str());
-    	return -1;
-  	}
+	/* open the create serial comm  */
+	if(create_open(c,FULLCONTROL) < 0) {
+	  printf("create open failed\n");
+	  return(-1);
+	}
 
-  	// Create a position2d proxy (device id "position2d:0") and susbscribe
-  	// in read/write mode
-  	position2d = playerc_position2d_create(client, 0);
-  	if (playerc_position2d_subscribe(position2d, PLAYERC_OPEN_MODE) != 0)
-  	{
-    	fprintf(stderr, "error: %s\n", playerc_error_str());
-    	return -1;
-  	}
+	/* Open the i2c device */
+	if(turret_open(r) < 0) {
+	printf("failed to connect to robostix\n");
+	return(-1);
+	}
 
-	// create proxy for sonars                                                                                      
-	turret_sonar = playerc_sonar_create(client, 0);
-	if (playerc_sonar_subscribe(turret_sonar, PLAYERC_OPEN_MODE) != 0)
-	{
-		fprintf(stderr, "sonar subscribe error: %s\n", playerc_error_str());
-    	return -1;
-  	}
+	/* init the robostix board interfaces */
+	turret_init(r);
+	
+	turret_SetServo(r,90);
 
-  	// create proxy for ir sensors                                                                                  
-  	turret_ir = playerc_ir_create(client, 1);
-  	if (playerc_ir_subscribe(turret_ir, PLAYERC_OPEN_MODE) != 0)
-  	{
-    	fprintf(stderr, "ir subscribe error: %s\n", playerc_error_str());
-    	return -1;
-  	}
-
-
-	// Enable the robots motors
-	playerc_position2d_enable(position2d, 1);
-	playerc_client_read(client);
+	/* robot is set up and ready -- select tests and run */
+	
+	waypoints[0].x = 0.0;				//origin
+	waypoints[0].y = 0.0;
+	waypoints[1].x = 7.3;
+	waypoints[1].y = 0.0;
+	waypoints[2].x = (7.62 + 7.3);
+	waypoints[2].y = 7.62;
+	waypoints[3].x = (18.89 + 7.62 + 7.3);
+	waypoints[3].y = 7.62;
+	waypoints[4].x = (18.89 + 7.62 + 7.3);
+	waypoints[4].y = (7.62 - 10.668);
+	waypoints[5].x = (18.89 + 7.62 + 7.3 + 3.9624);
+	waypoints[5].y = (7.62 - 10.668 - 9.144);
+	waypoints[6].x = (18.89 + 7.62 + 7.3 + 3.9624 - 22.86);
+	waypoints[6].y = (7.62 - 10.668 - 9.144);
+	waypoints[7].x = (18.89 + 7.62 + 7.3 + 3.9624 - 22.86);
+	waypoints[7].y = (7.62 - 10.668 - 9.144 + 12.192);
 	
 	//robot motions
-	Move(client, waypoint[1]);
-	Move(client, waypoint[2]);
-	Move(client, waypoint[3]);
-	Move(client, waypoint[4]);
-	Move(client, waypoint[5]);
-	Move(client, waypoint[6]);
-	Move(client, waypoint[7]);
+	Move(c, r, waypoints[1]);
+	Move(c, r, waypoints[2]);
+	Move(c, r, waypoints[3]);
+	Move(c, r, waypoints[4]);
+	Move(c, r, waypoints[5]);
+	Move(c, r, waypoints[6]);
+	Move(c, r, waypoints[7]);
 	//
 	
 	// Shutdown and tidy up
-	playerc_sonar_unsubscribe(turret_sonar);
-	playerc_sonar_destroy(turret_sonar);
-	playerc_ir_unsubscribe(turret_ir);
-	playerc_ir_destroy(turret_ir);
-	playerc_position2d_unsubscribe(position2d);
-	playerc_position2d_destroy(position2d);
-	playerc_client_disconnect(client);
-	playerc_client_destroy(client);
+	create_set_speeds(c,0.0,0.0);
+	create_close(c);
+	create_destroy(c);
+	turret_close(r);
+	turret_destroy(r);
+	exit(0);
 	
 	return 0;
 }
@@ -84,25 +74,25 @@ int main(int argc, const char **argv)
  * position2d: current px,py,pa positions for robot
  * targetX:    x-coordinate destination
  */
-float error_t(playerc_position2d_t *position2d, waypoint point)
+float error_t(create_comm_t *position2d, waypoint point)
 {
-	return sqrt(pow((point.x - position2d->px), 2.0) + pow((point.y - position2d->py), 2.0))
+	return sqrt(pow((point.x - position2d->ox), 2.0) + pow((point.y - position2d->oy), 2.0));
 }
 
 /* error_ta()
  * position2d:  current px,py,pa positions for robot
  * targetAngle: angle to turn to
  */
-float error_ta(playerc_position2d_t *position2d, float targetAngle)
+float error_ta(create_comm_t *position2d, float targetAngle)
 {
-  return targetAngle - position2d->pa;
+  return (targetAngle - position2d->oa);
 }
 
 /* error_ir_left()
  */
 float error_ir_LEFT()
 {
-	ir_l = turret_ir->ranges.ranges[0];
+	ir_l = r->ir[1];
 	return firFilter(filter, ir_l);
 }
 
@@ -110,15 +100,26 @@ float error_ir_LEFT()
  */
 float error_ir_RIGHT()
 {
-	ir_r = turret_ir->ranges.ranges[1];
+	ir_r = r->ir[0];
 	return firFilter(filter, ir_r);
 }
 
-/* error_sonar()
+/* error_sonar_FRONT()
  */
-float error_sonar()
+float error_sonar_FRONT(turret_comm_t *t)
 {
-	
+	sonar_f = t->sonar[0];
+	return sonar_f;
+	//firFilter(filter, sonar_f);
+}
+
+/* error_sonar_BACK()
+ */
+float error_sonar_BACK(turret_comm_t *t)
+{
+	sonar_b = t->sonar[1];
+	return sonar_b;
+	//firFilter(filter, sonar_b);
 }
 
 /* PID()
@@ -150,36 +151,45 @@ float PID_A(float pid_error_a)
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-float Move(playerc_client_t *client, waypoint point)
+float Move(create_comm_t *client, turret_comm_t *t, waypoint point)
 {
-	printf("Enter Move\n");  
-
-	error_dist = error_t(position2d, point);
+	printf("Enter Move\ngetting error_t\n");  
+	create_get_sensors(client,10000);
+	error_dist = error_t(client, point);
+	printf("just got error_t\n");
+	float sensor_error;
 
 	while(error_dist > 0.5)
 	{
-		//use awesome filter stuffs
+		create_get_sensors(client,100000);
+		printf("in while loop\n");
+		error_dist = error_t(client, point);
+		vx = PID(error_dist);
 		
-		error_dist = error_t(position2d, point);
-		vx = PID(point);
-
-		error_a = error_ta(position2d);
+		error_a = error_ta(client, 0.0);
 		va = PID_A(error_a);
-
-		playerc_position2d_set_cmd_vel(position2d, vx, 0, va, 1.0);
-
-		if(bumper->bumpers[0]!=0 || bumper->bumpers[1]!=0)
+		printf("getting sensor_error %d\n",sensor_error);
+		turret_get_sonar(t);
+		sensor_error = (error_sonar_FRONT(t) - error_sonar_BACK(t));
+		if(sensor_error >= 3.0){	//too far to the left
+			printf("decrementing va\n");
+			va--;
+		}
+		if(sensor_error <= -3.0){	//too far to the right
+			printf("incrementing va\n");
+			va++;
+		}
+		printf("setting speeds\n");
+		create_set_speeds(client, vx, va);
+		printf("test bumpers\n");
+		if(client->bumper_left || client->bumper_right)
 		{
-			playerc_position2d_set_cmd_vel(position2d, 0.0, 0.0, 0.0, 0.0);
+			create_set_speeds(client, 0.0, 0.0);
 			break;
 		}
-		playerc_client_read(client);
-		printf("Moving : x = %f y = %f a = %f\n", position2d->px, position2d->py, position2d->pa);   
-		printf("ir = %f %f sonar = %f %f\n",turret_ir->data.ranges[0], turret_ir->data.ranges[1],
-			 turret_sonar->scan[0], turret_sonar->scan[1]);
+		printf("Moving : x = %f y = %f a = %f\n", client->ox, client->oy, client->oa);   
+		printf("ir = %d %d sonar = %d %d\n",r->ir[0],r->ir[1],r->sonar[0],r->sonar[1]);
 	}
-	
-	
 	
 	printf("Leave Move\n");
 }
@@ -188,7 +198,7 @@ float Move(playerc_client_t *client, waypoint point)
  * client: client to connect to robot
  * deg:    amount of degrees robot should turn
  */
-float Turn(playerc_client_t *client, float deg)
+/*float Turn(playerc_client_t *client, float deg)
 {
   printf("Enter Turn\n");
   float error_a = error_ta(position2d, deg);
@@ -213,7 +223,7 @@ float Turn(playerc_client_t *client, float deg)
     printf("Turning : x = %f y = %f a = %f\n", position2d->px, position2d->py, position2d->pa);   
   }
   printf("Leave Turn\n");
-}
+}*/
 
 /* firFilterCreate()
  * creates, allocates,  and iniitializes a new firFilter
@@ -221,7 +231,7 @@ float Turn(playerc_client_t *client, float deg)
 filter_t *firFilterCreate()
 {
 	int i;
-  	filter *f = malloc(sizeof(filter));
+  	filter_t *f = malloc(sizeof(filter));
   	for (i=0; i<TAPS; i++) {
     	f->samples[i] = 0;
     	f->coefficients[i] = 1. /(float) TAPS; // user must set coef's
