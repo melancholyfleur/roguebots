@@ -109,8 +109,8 @@ float error_ir_RIGHT()
 float error_sonar_FRONT(turret_comm_t *t)
 {
 	sonar_f = t->sonar[0];
-	return sonar_f;
-	//firFilter(filter, sonar_f);
+	//return sonar_f;
+	return firFilter(filter, sonar_f);
 }
 
 /* error_sonar_BACK()
@@ -118,8 +118,8 @@ float error_sonar_FRONT(turret_comm_t *t)
 float error_sonar_BACK(turret_comm_t *t)
 {
 	sonar_b = t->sonar[1];
-	return sonar_b;
-	//firFilter(filter, sonar_b);
+	//return sonar_b;
+	return firFilter(filter, sonar_b);
 }
 
 /* PID()
@@ -154,14 +154,14 @@ float PID_A(float pid_error_a)
 float Move(create_comm_t *client, turret_comm_t *t, waypoint point)
 {
 	printf("Enter Move\ngetting error_t\n");  
-	create_get_sensors(client,10000);
+	create_get_sensors(client, TIMEOUT);
 	error_dist = error_t(client, point);
 	printf("just got error_t\n");
 	float sensor_error;
 
 	while(error_dist > 0.5)
 	{
-		create_get_sensors(client,100000);
+		create_get_sensors(client, TIMEOUT);
 		printf("in while loop\n");
 		error_dist = error_t(client, point);
 		vx = PID(error_dist);
@@ -189,6 +189,7 @@ float Move(create_comm_t *client, turret_comm_t *t, waypoint point)
 		}
 		printf("Moving : x = %f y = %f a = %f\n", client->ox, client->oy, client->oa);   
 		printf("ir = %d %d sonar = %d %d\n",r->ir[0],r->ir[1],r->sonar[0],r->sonar[1]);
+		usleep(500);
 	}
 	
 	printf("Leave Move\n");
@@ -257,7 +258,7 @@ float firFilter(filter_t *f, float val)
      i tracks the next coefficient
      j tracks the samples w/wrap-around */
   	for( i=0,j=f->next_sample; i<TAPS; i++) {
-    	sum += f->coefficients[i]*f->samples[j--];
+    	sum += f->coefficients[i]*f->samples[j++];
     	if(j==TAPS)  j=0;
   	}
   	if(++(f->next_sample) == TAPS) f->next_sample = 0;

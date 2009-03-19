@@ -13,8 +13,11 @@
 #include <math.h>
 #include "TurretAPI.h"
 #include "create_comms.h"
+#include <unistd.h>
 
 #define FULLCONTROL 1
+
+#define TIMEOUT 10000000
 
 #define PID_KP 1.0
 #define PID_KI 0.05
