@@ -27,7 +27,12 @@ int main(int argc, const char **argv)
 
 	/* init the robostix board interfaces */
 	turret_init(r);	
-	turret_SetServo(r,90);
+	if(!WHICH_SENSOR){
+	  turret_SetServo(r,90);
+	}
+	else{
+	  turret_SetServo(r,0);
+	}
 
 	filter = firFilterCreate();
 
@@ -73,7 +78,7 @@ int main(int argc, const char **argv)
 
 /* error_tx()
  * position2d: current px,py,pa positions for robot
- * targetX:    x-coordinate destination
+ * targetx:    x-coordinate destination
  */
 float error_t(create_comm_t *position2d, waypoint point)
 {
@@ -89,40 +94,39 @@ float error_ta(create_comm_t *position2d, float targetAngle)
   return (targetAngle - position2d->oa);
 }
 
-/* error_ir_left()
+/* error_ir()
  */
-float error_ir_LEFT()
+float error_ir(turret_comm_t *s)
 {
-	ir_l = r->ir[1];
-	return firFilter(filter, ir_l);
+	float ir_error;
+	turret_get_ir(s);
+	ir_r = firFilter(filter, s->ir[0]);
+	ir_l = firFilter(filter, s->ir[1]);
+	ir_error = (ir_l - ir_r);
+	return ir_error;
 }
 
-/* error_ir_right()
+/* error_sonar()
  */
-float error_ir_RIGHT()
+float error_sonar(turret_comm_t *s)
 {
-	ir_r = r->ir[0];
-	return firFilter(filter, ir_r);
-}
-
-/* error_sonar_FRONT()
- */
-float error_sonar_FRONT(turret_comm_t *t)
-{
-	sonar_f = t->sonar[0];
-	//return sonar_f;
-	return firFilter(filter, sonar_f);
+	float sonar_error;
+	turret_get_sonar(s);
+	sonar_f = firFilter(filter, s->sonar[0]);
+	sonar_b = firFilter(filter, s->sonar[1]);
+	sonar_error = (sonar_f - sonar_b);
+	return sonar_error;
 }
 
 /* error_sonar_BACK()
- */
-float error_sonar_BACK(turret_comm_t *t)
+
+float error_sonar_BACK(turret_comm_t *s)
 {
-	sonar_b = t->sonar[1];
+	sonar_b = s->sonar[1];
 	//return sonar_b;
 	return firFilter(filter, sonar_b);
 }
-
+*/
 /* PID()
  * pid_error: current error for destination
  */
@@ -158,7 +162,6 @@ float Move(create_comm_t *client, turret_comm_t *t, waypoint point)
 	create_get_sensors(client, TIMEOUT);
 	error_dist = error_t(client, point);
 	printf("just got error_t\n");
-	float sensor_error;
 
 	while(error_dist > 0.5)
 	{
@@ -169,9 +172,14 @@ float Move(create_comm_t *client, turret_comm_t *t, waypoint point)
 		
 		error_a = error_ta(client, 0.0);
 		va = PID_A(error_a);
+		float sensor_error;
+		if(WHICH_SENSOR){
+			sensor_error = error_ir(t);
+		}
+		else{
+			sensor_error = error_sonar(t);
+		}
 		printf("getting sensor_error %d\n",sensor_error);
-		turret_get_sonar(t);
-		sensor_error = (error_sonar_FRONT(t) - error_sonar_BACK(t));
 		if(sensor_error >= 3.0){	//too far to the left
 			printf("decrementing va\n");
 			va--;
@@ -236,7 +244,7 @@ filter_t *firFilterCreate()
   	filter_t *f = malloc(sizeof(filter));
   	for (i=0; i<TAPS; i++) {
     	f->samples[i] = 0;
-    	f->coefficients[i] = 1. /(float) TAPS; // user must set coef's
+    	f->coefficients[i] = 1.0/(float) TAPS; // user must set coef's
   	}
   	f->next_sample = 0;
 }
@@ -259,7 +267,7 @@ float firFilter(filter_t *f, float val)
      i tracks the next coefficient
      j tracks the samples w/wrap-around */
   	for( i=0,j=f->next_sample; i<TAPS; i++) {
-    	sum += f->coefficients[i]*f->samples[j++];
+    	sum += f->coefficients[i]*f->samples[j--];
     	if(j==TAPS)  j=0;
   	}
   	if(++(f->next_sample) == TAPS) f->next_sample = 0;

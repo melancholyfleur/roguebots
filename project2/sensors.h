@@ -28,6 +28,8 @@
 
 #define TAPS  8			// how many filter taps
 
+#define WHICH_SENSOR 1
+
 typedef struct
 {
 	float x;
@@ -66,10 +68,8 @@ float error_ta(create_comm_t*, float);
 float PID(float);
 float PID_A(float);
 float Move(create_comm_t*, turret_comm_t*, waypoint);
-float error_ir_LEFT();
-float error_ir_RIGHT();
-float error_sonar_FRONT(turret_comm_t*);
-float error_sonar_BACK(turret_comm_t*);
+float error_ir(turret_comm_t*);
+float error_sonar(turret_comm_t*);
 
 
 #endif
