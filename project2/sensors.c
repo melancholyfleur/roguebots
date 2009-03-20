@@ -26,9 +26,10 @@ int main(int argc, const char **argv)
 	}
 
 	/* init the robostix board interfaces */
-	turret_init(r);
-	
+	turret_init(r);	
 	turret_SetServo(r,90);
+
+	filter = firFilterCreate();
 
 	/* robot is set up and ready -- select tests and run */
 	
