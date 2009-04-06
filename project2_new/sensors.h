@@ -48,7 +48,7 @@ typedef struct
 turret_comm_t *r;
 create_comm_t *c;
 filter_t *filter;
-char filename[]    = "waypoints.txt"; // file that contains (x,y) coords for waypoints
+//char filename[]    = "waypoints.txt"; // file that contains (x,y) coords for waypoints
 char *file_tokens  = NULL;	      // contains tokenized waypoint coordinates
 float prev_error   = 0.0;             // previous error for x/y destination
 float prev_error_a = 0.0;             // previous error for angle
@@ -77,15 +77,15 @@ float new_angle    = 0.0;	      // new angle that the robot must turn
 int position	   = 0;	              // ox, oy, and oa of robot
 int num_waypoints  = 0;	              // number of waypoints to navigate to
 
-waypoint *waypoints;     //array of waypoints
+waypoint waypoints[9];     //array of waypoints
 
 filter_t *firFilterCreate();
 float firFilter(filter_t*, float);
-float error_t(create_comm_t*, waypoint);
+float error_t(create_comm_t*, waypoint[];
 float error_ta(create_comm_t*, float);
 float PID(float);
 float PID_A(float);
-float Move(create_comm_t*, turret_comm_t*, waypoint, int);
+float Move(create_comm_t*, turret_comm_t*, waypoint[], int);
 float error_ir();
 float error_sonar();
 float getDistance(waypoint, waypoint);

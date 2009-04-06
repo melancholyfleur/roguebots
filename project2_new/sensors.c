@@ -9,6 +9,7 @@
 
 int main(int argc, const char **argv)
 {
+	printf("entered program\n");
 	/* allocate device objects */
 	c = create_create("/dev/ttyS2");
 	r = turret_create();
@@ -26,6 +27,7 @@ int main(int argc, const char **argv)
 	}
 
 	/* init the robostix board interfaces */
+	printf("initialize turret\n");
 	turret_init(r);	
 	// sonar
 	if(!WHICH_SENSOR){
@@ -35,12 +37,39 @@ int main(int argc, const char **argv)
 	else{
 	  	turret_SetServo(r,0);
 	}
-	printf("omg");
+	printf("creating filter\n");
 	filter = firFilterCreate();
-		
+	printf("created filter\n");
+
+	waypoints[0].x = 7.3;
+	waypoints[0].y = 0.0;
+	waypoints[1].x = 7.3;
+	waypoints[1].y = 7.62;
+	waypoints[2].x = 26.19;
+	waypoints[2].y = 7.62;
+	waypoints[3].x = 26.19;
+	waypoints[3].y = -3.04;
+	waypoints[4].x = 30.15;
+	waypoints[4].y = -3.04;
+	waypoints[5].x = 30.15;
+	waypoints[5].y = -12.18;
+	waypoints[6].x = 7.3;
+	waypoints[6].y = -12.18;
+	waypoints[7].x = 7.3;
+	waypoints[7].y = 0.0;
+	waypoints[8].x = 0.0;
+	waypoints[8].y = 0.0;
+
+	int i;
+	for(i = 0; i < 9; i++)
+	{
+		Move(c, r, waypoints, i);
+	}
+
+	/*
 	// read points from file
-	FILE *file = fopen(filename, "r");
-	printf("wtfbbq");
+	FILE *file = fopen(argv[1], "r");
+	printf("just read file\n");
 	if(file != NULL)
 	{
 		char line[32];
@@ -48,26 +77,25 @@ int main(int argc, const char **argv)
 
 		// read the first line in the file.
 		// this gives the number of waypoints
-		printf("fgetting line nums");
+		printf("fgetting line nums\n");
 		fgets(num_lines, 1, file);
 		num_waypoints = atoi(num_lines);
-
-		printf("allocating waypoint size");
+		printf("allocating waypoint size\n");
 		// allocate the size of *waypoints
 		waypoints = malloc(num_waypoints * sizeof(waypoint));
-		printf("malloc'd");
+		printf("malloc'd\n");
 		// store the (x,y) coordinates in *waypoints
 		int i = 0;
-		printf("fgetting lines");
+		printf("fgetting lines\n");
 		while(fgets(line,sizeof(line),file) != NULL)
 		{
-			printf("foo");
+			printf("foo\n");
 			file_tokens = strtok(line, ",");
-			printf("bar");
+			printf("bar\n");
 			waypoints[i].x = atof(file_tokens[0]);
-			printf("freep");
+			printf("freep\n");
 			waypoints[i].y = atof(file_tokens[1]);
-			printf("froop");
+			printf("froop\n");
 			i++;
 		}
 		fclose(file);
@@ -81,8 +109,8 @@ int main(int argc, const char **argv)
 	}
 	else
 	{
-		perror(filename);
-	}
+		perror(argv[1]);
+	}*/
 	
 	// Shutdown and tidy up
 	create_set_speeds(c,0.0,0.0);
@@ -182,7 +210,7 @@ float getDistance(waypoint point_one, waypoint point_two)
 
 float getAngle(float distance)
 {
-	printf("error entering getAngle");
+	printf("error entering getAngle\n");
 	// the U vector will be constant at these values
 	uX = BUFFER_DIST;
 	uY = 0.0;
@@ -207,39 +235,39 @@ float getAngle(float distance)
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-float Move(create_comm_t *client, turret_comm_t *t, waypoint point, int pos)
+float Move(create_comm_t *client, turret_comm_t *t, waypoint point[], int pos)
 {
-	printf("entering move");
+	printf("entering move\n");
 	// get ir
 	error_dist = error_t(client, point);
 	error_a = error_ta(client, 0.0);
 	while(error_dist > 0)
 	{
-		printf("error entering move while");
+		printf("error entering move while\n");
 		position = create_get_sensors(client, TIMEOUT);
-		printf("getting err_dist");
+		printf("getting err_dist\n");
 		error_dist = error_t(client, point);
-		printf("should have error_dist");
+		printf("should have error_dist\n");
 		vx = PID(error_dist);
-		printf("should have vx");
+		printf("should have vx\n");
 		va = PID_A(error_a);
-		printf("should have vz");
+		printf("should have vz\n");
 		
-		dist = getDistance(waypoints[pos], waypoints[pos+1]);
-		printf("should have dist");
+		dist = getDistance(point, point[pos+1]);
+		printf("should have dist\n");
 		new_angle = getAngle(dist);
-		printf("should have new_angle");
+		printf("should have new_angle\n");
 	
 		if(error_dist <= BUFFER_DIST)
 		{
-			if( (waypoints[pos+1].x > waypoints[pos].x) && (waypoints[pos+1].y >= waypoints[pos].y) ||
-			    (waypoints[pos+1].x > waypoints[pos].x) && (waypoints[pos+1].y <= waypoints[pos].y) ||
-			    (waypoints[pos+1].x < waypoints[pos].x) && (waypoints[pos+1].y >= waypoints[pos].y) ||
-			    (waypoints[pos+1].x < waypoints[pos].x) && (waypoints[pos+1].y <= waypoints[pos].y) ||
-			    (waypoints[pos+1].y < waypoints[pos].y) && (waypoints[pos+1].x >= waypoints[pos].x) ||
-			    (waypoints[pos+1].y < waypoints[pos].y) && (waypoints[pos+1].x <= waypoints[pos].x) ||
-			    (waypoints[pos+1].y > waypoints[pos].y) && (waypoints[pos+1].x <= waypoints[pos].x) ||
-			    (waypoints[pos+1].y > waypoints[pos].y) && (waypoints[pos+1].x >= waypoints[pos].x) );
+			if( (point[pos+1].x > point[pos].x) && (point[pos+1].y >= point[pos].y) ||
+			    (point[pos+1].x > point[pos].x) && (point[pos+1].y <= point[pos].y) ||
+			    (point[pos+1].x < point[pos].x) && (point[pos+1].y >= point[pos].y) ||
+			    (point[pos+1].x < point[pos].x) && (point[pos+1].y <= point[pos].y) ||
+			    (point[pos+1].y < point[pos].y) && (point[pos+1].x >= point[pos].x) ||
+			    (point[pos+1].y < point[pos].y) && (point[pos+1].x <= point[pos].x) ||
+			    (point[pos+1].y > point[pos].y) && (point[pos+1].x <= point[pos].x) ||
+			    (point[pos+1].y > point[pos].y) && (point[pos+1].x >= point[pos].x) );
 			{
 				new_angle = new_angle * -1;	
 			}
@@ -376,7 +404,7 @@ float firFilter(filter_t *f, float val)
      i tracks the next coefficient
      j tracks the samples w/wrap-around */
   	for( i=0,j=f->next_sample; i<TAPS; i++) {
-    	sum += f->coefficients[i]*f->samples[j--];
+    	sum += f->coefficients[i]*f->samples[j++];
     	if(j==TAPS)  j=0;
   	}
   	if(++(f->next_sample) == TAPS) f->next_sample = 0;
