@@ -37,9 +37,8 @@ int main(int argc, const char **argv)
 	else{
 	  	turret_SetServo(r,0);
 	}
-	printf("creating filter\n");
+
 	filter = firFilterCreate();
-	printf("created filter\n");
 
 	waypoints[0].x = 7.3;
 	waypoints[0].y = 0.0;
@@ -159,21 +158,12 @@ float error_ir()
 float error_sonar()
 {
 	turret_get_sonar(r);
-	sonar_f = firFilter(filter, r->sonar[0]);
-	sonar_b = firFilter(filter, r->sonar[1]);
-	sonar_error = (sonar_f - sonar_b);
+	sonar_r = firFilter(filter, r->sonar[0]);
+	sonar_l = firFilter(filter, r->sonar[1]);
+	sonar_error = (sonar_r - sonar_l);
 	return sonar_error;
 }
 
-/* error_sonar_BACK()
-
-float error_sonar_BACK(turret_comm_t *s)
-{
-	sonar_b = s->sonar[1];
-	//return sonar_b;
-	return firFilter(filter, sonar_b);
-}
-*/
 /* PID()
  * pid_error: current error for destination
  */
@@ -235,35 +225,57 @@ float getAngle(float distance)
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-float Move(create_comm_t *client, turret_comm_t *t, waypoint point[], int pos)
+void Move(create_comm_t *client, turret_comm_t *t, waypoint point[], int pos)
 {
 	printf("entering move\n");
 	// get ir
 	error_dist = error_t(client, point[pos]);
-	error_a = error_ta(client, 0.0);
-	while(error_dist > 0)
+	error_a = error_ta(client, curr_angle);
+	while(error_dist > BUFFER_DIST)
 	{
-		printf("error entering move while\n");
 		position = create_get_sensors(client, TIMEOUT);
 		
-		printf("getting err_dist\n");
 		error_dist = error_t(client, point[pos]);
+		printf("error_dist: %f\n", error_dist);
 		
-		printf("should have error_dist\n");
 		vx = PID(error_dist);
+		printf("vx: %f\n", vx);
 		
-		printf("should have vx\n");
 		va = PID_A(error_a);
+		printf("va: %f\n", va);
 		
-		printf("should have vz\n");
+		create_set_speeds(client, vx, va);
 		
-		dist = getDistance(point[pos], point[pos+1]);
-		printf("should have dist\n");
-		new_angle = getAngle(dist);
-		printf("should have new_angle\n");
-	
-		if(error_dist <= BUFFER_DIST)
+		if(client->bumper_left == 1 || client->bumper_right == 1) 
 		{
+			create_set_speeds(client, 0.0, 0.0);
+			break;
+		}
+		
+		sonar_error = error_sonar();
+		printf("sonar error: %f\n", sonar_error);
+		
+		if(sonar_error > 0.0)
+		{
+			va += (M_PI/16);
+			create_set_speeds(client,vx,va);
+		}
+		else if(sonar_error < 0.0)
+		{
+			va -= (M_PI/16);
+			create_set_speeds(client,vx,va);
+		}
+		
+		//usleep(500);
+	}
+		//if(error_dist <= BUFFER_DIST)
+		//{
+			dist = getDistance(point[pos], point[pos+1]);
+			printf("dist: %f\n", dist);
+
+			new_angle = getAngle(dist);
+			printf("new_angle: %f\n", new_angle);
+			
 			if( ((point[pos+1].x > point[pos].x) && (point[pos+1].y >= point[pos].y)) ||
 			    ((point[pos+1].x > point[pos].x) && (point[pos+1].y <= point[pos].y)) ||
 			    ((point[pos+1].x < point[pos].x) && (point[pos+1].y >= point[pos].y)) ||
@@ -275,29 +287,14 @@ float Move(create_comm_t *client, turret_comm_t *t, waypoint point[], int pos)
 			{
 				new_angle = new_angle * -1;	
 			}
-		}
+		//}
 		va += new_angle;
+		curr_angle = va;
 
 		create_set_speeds(client, vx, va);
 			
-		if(sonar_error >= 3.0)
-		{
-			va -= (M_PI/16);
-			create_set_speeds(client,vx,va);
-		}
-		else if(sonar_error < 3.0)
-		{
-			va += (M_PI/16);
-			create_set_speeds(client,vx,va);
-		}
 		
-		if(client->bumper_left == 1 || client->bumper_right == 1) 
-		{
-			create_set_speeds(client, 0.0, 0.0);
-			break;
-		}
-		usleep(500);
-	}
+	
 	/*
 	printf("Enter Move\ngetting error_t\n");  
 	create_get_sensors(client, TIMEOUT);
