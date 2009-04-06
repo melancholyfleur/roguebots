@@ -239,35 +239,39 @@ float Move(create_comm_t *client, turret_comm_t *t, waypoint point[], int pos)
 {
 	printf("entering move\n");
 	// get ir
-	error_dist = error_t(client, point);
+	error_dist = error_t(client, point[pos]);
 	error_a = error_ta(client, 0.0);
 	while(error_dist > 0)
 	{
 		printf("error entering move while\n");
 		position = create_get_sensors(client, TIMEOUT);
+		
 		printf("getting err_dist\n");
-		error_dist = error_t(client, point);
+		error_dist = error_t(client, point[pos]);
+		
 		printf("should have error_dist\n");
 		vx = PID(error_dist);
+		
 		printf("should have vx\n");
 		va = PID_A(error_a);
+		
 		printf("should have vz\n");
 		
-		dist = getDistance(point, point[pos+1]);
+		dist = getDistance(point[pos], point[pos+1]);
 		printf("should have dist\n");
 		new_angle = getAngle(dist);
 		printf("should have new_angle\n");
 	
 		if(error_dist <= BUFFER_DIST)
 		{
-			if( (point[pos+1].x > point[pos].x) && (point[pos+1].y >= point[pos].y) ||
-			    (point[pos+1].x > point[pos].x) && (point[pos+1].y <= point[pos].y) ||
-			    (point[pos+1].x < point[pos].x) && (point[pos+1].y >= point[pos].y) ||
-			    (point[pos+1].x < point[pos].x) && (point[pos+1].y <= point[pos].y) ||
-			    (point[pos+1].y < point[pos].y) && (point[pos+1].x >= point[pos].x) ||
-			    (point[pos+1].y < point[pos].y) && (point[pos+1].x <= point[pos].x) ||
-			    (point[pos+1].y > point[pos].y) && (point[pos+1].x <= point[pos].x) ||
-			    (point[pos+1].y > point[pos].y) && (point[pos+1].x >= point[pos].x) );
+			if( ((point[pos+1].x > point[pos].x) && (point[pos+1].y >= point[pos].y)) ||
+			    ((point[pos+1].x > point[pos].x) && (point[pos+1].y <= point[pos].y)) ||
+			    ((point[pos+1].x < point[pos].x) && (point[pos+1].y >= point[pos].y)) ||
+			    ((point[pos+1].x < point[pos].x) && (point[pos+1].y <= point[pos].y)) ||
+			    ((point[pos+1].y < point[pos].y) && (point[pos+1].x >= point[pos].x)) ||
+			    ((point[pos+1].y < point[pos].y) && (point[pos+1].x <= point[pos].x)) ||
+			    ((point[pos+1].y > point[pos].y) && (point[pos+1].x <= point[pos].x)) ||
+			    ((point[pos+1].y > point[pos].y) && (point[pos+1].x >= point[pos].x)) );
 			{
 				new_angle = new_angle * -1;	
 			}

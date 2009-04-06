@@ -81,7 +81,7 @@ waypoint waypoints[9];     //array of waypoints
 
 filter_t *firFilterCreate();
 float firFilter(filter_t*, float);
-float error_t(create_comm_t*, waypoint[];
+float error_t(create_comm_t*, waypoint);
 float error_ta(create_comm_t*, float);
 float PID(float);
 float PID_A(float);
