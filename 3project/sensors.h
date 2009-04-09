@@ -24,13 +24,11 @@
 #define TIMEOUT 100
 #define BUFFER_DIST .5
 
-#define WHICH_SENSOR 0		// 0 = sonar, 1 = ir
-
 /* GLOBAL VARS */
 turret_comm_t *r;
 create_comm_t *c;
 //char filename[]    = "waypoints.txt"; // file that contains (x,y) coords for waypoints
-char *file_tokens  = NULL;	      // contains tokenized waypoint coordinates
+//char *file_tokens  = NULL;	      // contains tokenized waypoint coordinates
 float error_dist   = 0.0;             // current x error
 float error_a      = 0.0;             // current angle error
 float ir_r         = 0.0;             // right IR value
@@ -54,13 +52,24 @@ float dist         = 0.0;	      // distance between two cartisian coords
 float new_angle    = 0.0;	      // new angle that the robot must turn
 float curr_angle   = 0.0;
 int position	   = 0;	              // ox, oy, and oa of robot
-int num_waypoints  = 0;	              // number of waypoints to navigate to
+char direction[10];
 
-waypoint waypoints[9];     //array of waypoints
+	/*
+	angle[0] = M_PI;	//e to w
+	angle[1] = -(M_PI/2);	//w to n
+	angle[2] = -(M_PI/2);	//n to e
+	angle[3] = (M_PI/2);	//e to n
+	angle[4] = -(M_PI/2);	//n to e
+	angle[5] = 0.0;		//e to e
+	angle[6] = (M_PI/2);	//e to n
+	angle[7] = 0.0;		//n to n
+	angle[8] = -(M_PI/2);	//n to e
+	angle[9] = 0.0;		//e to e
+	*/
 
-float getDistance(waypoint, waypoint);
-void Move(create_comm_t*, turret_comm_t*, waypoint[], int);
-float getAngle(float);
+//float getDistance(waypoint, waypoint);
+void Move(create_comm_t*, turret_comm_t*, direction[], int);
+//float getAngle(float);
 float error_ir();
 float error_sonar();
 

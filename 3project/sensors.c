@@ -28,41 +28,25 @@ int main(int argc, const char **argv)
 
 	/* init the robostix board interfaces */
 	printf("initialize turret\n");
-	turret_init(r);	
-	// sonar
-	if(!WHICH_SENSOR){
-		turret_SetServo(r,90);
-	}
-	//ir
-	else{
-	  	turret_SetServo(r,0);
-	}
+	turret_init(r);
 
 	filter = firFilterCreate();
 
-	waypoints[0].x = 7.3;
-	waypoints[0].y = 0.0;
-	waypoints[1].x = 7.3;
-	waypoints[1].y = 7.62;
-	waypoints[2].x = 26.19;
-	waypoints[2].y = 7.62;
-	waypoints[3].x = 26.19;
-	waypoints[3].y = -3.04;
-	waypoints[4].x = 30.15;
-	waypoints[4].y = -3.04;
-	waypoints[5].x = 30.15;
-	waypoints[5].y = -12.18;
-	waypoints[6].x = 7.3;
-	waypoints[6].y = -12.18;
-	waypoints[7].x = 7.3;
-	waypoints[7].y = 0.0;
-	waypoints[8].x = 0.0;
-	waypoints[8].y = 0.0;
-
+	direction[0] = "W";
+	direction[1] = "N";
+	direction[2] = "E";
+	direction[3] = "N";
+	direction[4] = "E";
+	direction[5] = "E";
+	direction[6] = "N";
+	direction[7] = "N";
+	direction[8] = "E";
+	direction[9] = "E";
+	
 	int i;
-	for(i = 0; i < 9; i++)
+	for(i = 0; i < 10; i++)
 	{
-		Move(c, r, waypoints, i);
+		Move(c, r, direction, i);
 	}
 
 	/*
@@ -176,7 +160,7 @@ float error_sonar()
 		sonar_error = (542.5 - sonar_l);
 	}
 	else if(sonar_l > 650.0){
-		sonar_error = (542.5 - sonar_r);
+		sonar_error = (sonar_r - 542.5);
 	}	
 	else{
 		sonar_error = (sonar_r - sonar_l);
@@ -189,11 +173,11 @@ float error_sonar()
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-void Move(create_comm_t *client, turret_comm_t *t, waypoint point[], int pos)
+void Move(create_comm_t *client, turret_comm_t *t, direction d[], int pos)
 {
+	char curpos = d[pos-1];
 	printf("entering move\n");
-	// get ir
-	error_dist = error_t(client, point[pos]);
+	error_dist = error_t(client, d[pos]);
 	error_a = error_ta(client, curr_angle);
 	while(error_dist > BUFFER_DIST)
 	{
