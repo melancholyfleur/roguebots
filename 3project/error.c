@@ -8,13 +8,14 @@
 #include "error.h"
 #include <math.h>
 
+
 /* error_tx()
  * position2d: current px,py,pa positions for robot
  * targetx:    x-coordinate destination
  */
-float error_t(create_comm_t *position2d, waypoint point)
+float error_tx(create_comm_t *position2d, int targetPos)
 {
-	return sqrt(pow((point.x - position2d->ox), 2.0) + pow((point.y - position2d->oy), 2.0));
+	return targetPos - position2d->ox;
 }
 
 /* error_ta()
@@ -25,5 +26,6 @@ float error_ta(create_comm_t *position2d, float targetAngle)
 {
   	return (targetAngle - position2d->oa);
 }
+
 
 

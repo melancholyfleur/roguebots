@@ -37,6 +37,14 @@ turret_comm_t *r;
 create_comm_t *c;
 
 
+float angle_error = 0.0;
+float sonar_error = 0.0;
+float ir_error = 0.0;
+float ir_r = 0.0;
+float ir_l = 0.0;
+float sonar_r = 0.0;
+float sonar_l = 0.0;
+float dist_error;
 float vx           = 0.0;         // x velocity
 float va           = 0.0;         // angle velocity
 float uVectorX     = 0.0;	      // 

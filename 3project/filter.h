@@ -19,8 +19,8 @@ typedef struct
   	float    samples[TAPS];
 } filter_t;
 
-filter_t *filter;
 
+filter_t *filter;
 filter_t *firFilterCreate();
 float firFilter(filter_t*, float);
 

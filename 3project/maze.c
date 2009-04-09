@@ -158,3 +158,37 @@ void Turn(create_comm_t *client) {
 	// reassign the nextDirection to now be the current direction
 	currDirection = nextDirection;
 }
+
+
+/* error_ir()
+ * * return: value greater or less than zero
+ * */
+float error_ir(turret_comm_t *r)
+{
+  turret_get_ir(r);
+    ir_r = firFilter(filter, r->ir[0]);
+      ir_l = firFilter(filter, r->ir[1]);
+        ir_error = (ir_r - ir_l);
+	  return ir_error;
+	  }
+	   
+	   /* error_sonar()
+	    * */
+	   float error_sonar(turret_comm_t *s)
+	   {
+	     turret_get_sonar(s);
+	       sonar_r = firFilter(filter, s->sonar[0]);
+	         sonar_l = firFilter(filter, s->sonar[1]);
+		   if(sonar_r > 650.0){
+		       sonar_error = (542.5 - sonar_l);
+		         }
+			   else if(sonar_l > 650.0){
+			       sonar_error = (542.5 - sonar_r);
+			         }  
+				   else{
+				       sonar_error = (sonar_r - sonar_l);
+				         }
+					   return sonar_error;
+					   }
+
+
