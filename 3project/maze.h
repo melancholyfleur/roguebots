@@ -22,9 +22,9 @@
 #define FULLCONTROL 1
 
 #define TIMEOUT 100
-#define BUFFER_DIST .5
+#define BUFFER_DIST .3
 #define WHICH_SENSOR 0		// 0 = sonar, 1 = ir
-#define START_DIR 2
+#define START_DIR 3
 #define NORTH 0
 #define SOUTH 1
 #define EAST 2
@@ -33,6 +33,7 @@
 /* Global Variables */
 turret_comm_t *r;
 create_comm_t *c;
+float distToMove   = 0.8;
 float angle_error  = 0.0;
 float sonar_error  = 0.0;
 float ir_error     = 0.0;
@@ -40,7 +41,7 @@ float ir_r         = 0.0;
 float ir_l         = 0.0;
 float sonar_r      = 0.0;
 float sonar_l      = 0.0;
-float dist_error;
+float dist_error   = 0.0;
 float vx           = 0.0;             // x velocity
 float va           = 0.0;             // angle velocity
 float uVectorX     = 0.0;	      // 
@@ -69,7 +70,7 @@ void MoveToNeighboringCell(create_comm_t*, turret_comm_t*, int);
 void AdjustPosition(create_comm_t*, turret_comm_t*);
 float error_sonar(turret_comm_t *);
 float error_ir(turret_comm_t *);
-float error_tx(create_comm_t*, int);
+float error_tx(create_comm_t*, float);
 float error_ta(create_comm_t*, float);
 
 #endif

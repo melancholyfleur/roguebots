@@ -74,7 +74,7 @@ int main(int argc, const char **argv)
 
 void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
 	sonar_error = error_sonar(tr);
-	printf("sonar error: %f\n", sonar_error);
+	printf("in AdjustPosition\nsonar error: %f\n", sonar_error);
 	if(sonar_error > 0.0)
 	{
 		va += (M_PI/16);
@@ -97,15 +97,17 @@ void MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int tar
 	printf("in movetoneighbor function\n");
 	nextDirection = target;
 	Turn(device);
+	position = create_get_sensors(device, TIMEOUT);
+	dist_error = error_tx(device, distToMove);
 	while(dist_error > BUFFER_DIST)
 	{
 		printf("in move while loop\n");
 		position = create_get_sensors(device, TIMEOUT);
 		
-		dist_error = error_tx(device, target);
+		dist_error = error_tx(device, distToMove);
 		printf("dist_error: %f\n", dist_error);
 		
-		vx = PID(sonar_error);
+		vx = PID(dist_error);
 		printf("vx: %f\n", vx);
 		
 		va = PID_A(angle_error);
@@ -124,7 +126,7 @@ void MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int tar
 }
 
 void Turn(create_comm_t* robot) {
-	printf("in turn function");	
+	printf("in turn function\n");	
 	// get delta angle
 	if( (currDirection == NORTH && nextDirection == WEST) ||
 	    (currDirection == SOUTH && nextDirection == EAST) ||
@@ -169,7 +171,7 @@ void Turn(create_comm_t* robot) {
 		printf("angle_error: %f\n",angle_error);
 		va = PID_A(angle_error);
 		//va = angle_error;
-		printf("va: %f\n",va);
+		//printf("va: %f\n",va);
 		create_set_speeds(robot, 0.0, va);
 	}
 	
@@ -197,11 +199,11 @@ float error_sonar(turret_comm_t *s)
 	turret_get_sonar(s);
 	sonar_r = firFilter(filter, s->sonar[0]);
 	sonar_l = firFilter(filter, s->sonar[1]);
-	if(sonar_r > 650.0){
-		sonar_error = (542.5 - sonar_l);
+	if(sonar_r > 70.0){
+		sonar_error = (35.0 - sonar_l);
 	}
-	else if(sonar_l > 650.0){
-		sonar_error = (542.5 - sonar_r);
+	else if(sonar_l > 70.0){
+		sonar_error = (35.0 - sonar_r);
 	}  
 	else{
 		sonar_error = (sonar_r - sonar_l);
@@ -213,7 +215,7 @@ float error_sonar(turret_comm_t *s)
  * position2d: current px,py,pa positions for robot
  * targetx:    x-coordinate destination
  */
-float error_tx(create_comm_t *position2d, int targetPos)
+float error_tx(create_comm_t *position2d, float targetPos)
 {
 	return (targetPos - position2d->ox);
 }
@@ -224,7 +226,6 @@ float error_tx(create_comm_t *position2d, int targetPos)
  */
 float error_ta(create_comm_t *position2d, float targetAngle)
 {
-	printf("position2d->oa: %f\n",position2d->oa);
-  	return (targetAngle - c->oa);
+  	return (targetAngle - position2d->oa);
 }
 
