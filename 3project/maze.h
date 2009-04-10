@@ -22,7 +22,7 @@
 #define FULLCONTROL 1
 
 #define TIMEOUT 100
-#define BUFFER_DIST .3
+#define BUFFER_DIST 0.05
 #define WHICH_SENSOR 0		// 0 = sonar, 1 = ir
 #define START_DIR 3
 #define NORTH 0
@@ -33,7 +33,7 @@
 /* Global Variables */
 turret_comm_t *r;
 create_comm_t *c;
-float distToMove   = 0.8;
+float distToMove   = 0.0;
 float angle_error  = 0.0;
 float sonar_error  = 0.0;
 float ir_error     = 0.0;

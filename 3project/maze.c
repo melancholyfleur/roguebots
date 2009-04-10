@@ -98,13 +98,14 @@ void MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int tar
 	nextDirection = target;
 	Turn(device);
 	position = create_get_sensors(device, TIMEOUT);
-	dist_error = error_tx(device, distToMove);
+	dist_error = error_tx(device, distToMove+0.8);
+	printf("dist_error: %f\n",dist_error);
 	while(dist_error > BUFFER_DIST)
 	{
 		printf("in move while loop\n");
 		position = create_get_sensors(device, TIMEOUT);
 		
-		dist_error = error_tx(device, distToMove);
+		dist_error = error_tx(device, distToMove+0.8);
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(dist_error);
@@ -166,11 +167,10 @@ void Turn(create_comm_t* robot) {
 	while (fabs(angle_error) > 0.1)
 	{
 		position = create_get_sensors(robot, TIMEOUT);
-		printf("in turn while loop\n");
+		//printf("in turn while loop\n");
 		angle_error = error_ta(robot, delta);
-		printf("angle_error: %f\n",angle_error);
+		//printf("angle_error: %f\n",angle_error);
 		va = PID_A(angle_error);
-		//va = angle_error;
 		//printf("va: %f\n",va);
 		create_set_speeds(robot, 0.0, va);
 	}
@@ -226,6 +226,6 @@ float error_tx(create_comm_t *position2d, float targetPos)
  */
 float error_ta(create_comm_t *position2d, float targetAngle)
 {
-  	return (targetAngle - position2d->oa);
+	return (targetAngle - position2d->oa);
 }
 
