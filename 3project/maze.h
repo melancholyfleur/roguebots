@@ -9,7 +9,6 @@
 #define MAZEH
 
 #include "PID.h"
-#include "error.h"
 #include "filter.h"
 #include "TurretAPI.h"
 #include "create_comms.h"
