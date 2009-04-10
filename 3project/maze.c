@@ -39,7 +39,8 @@ int main(int argc, const char **argv)
 	}
 	
 	filter = firFilterCreate();
-	
+	printf("created a filter\n");
+
 	currDirection = START_DIR;
 	directions[0] = WEST;
 	directions[1] = NORTH;
@@ -52,6 +53,7 @@ int main(int argc, const char **argv)
 	directions[8] = EAST;
 	directions[9] = EAST;
 	
+	printf("entering move-for-loop\n");
 	int i;
 	for(i = 0; i < sizeof(directions); i++)
 	{
@@ -70,8 +72,19 @@ int main(int argc, const char **argv)
 	return 0;
 }
 
-void AdjustPosition() {
-	
+void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
+	sonar_error = error_sonar(tr);
+	printf("sonar error: %f\n", sonar_error);
+	if(sonar_error > 0.0)
+	{
+		va += (M_PI/16);
+		create_set_speeds(rb,vx,va);
+	}
+	else if(sonar_error < 0.0)
+	{
+		va -= (M_PI/16);
+		create_set_speeds(rb,vx,va);	
+	}	
 }
 
 /* Move() 
@@ -79,15 +92,17 @@ void AdjustPosition() {
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-void MoveToNeighboringCell(create_comm_t *client, turret_comm_t *t, int target)
+void MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int target)
 {
+	printf("in movetoneighbor function\n");
 	nextDirection = target;
-	Turn(client);
+	Turn(device);
 	while(dist_error > BUFFER_DIST)
 	{
-		position = create_get_sensors(client, TIMEOUT);
+		printf("in move while loop\n");
+		position = create_get_sensors(device, TIMEOUT);
 		
-		dist_error = error_tx(client, target);
+		dist_error = error_tx(device, target);
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(sonar_error);
@@ -96,31 +111,20 @@ void MoveToNeighboringCell(create_comm_t *client, turret_comm_t *t, int target)
 		va = PID_A(angle_error);
 		printf("va: %f\n", va);
 		
-		create_set_speeds(client, vx, va);
+		create_set_speeds(device, vx, va);
 		
-		if(client->bumper_left == 1 || client->bumper_right == 1) 
+		if(device->bumper_left == 1 || device->bumper_right == 1) 
 		{
-			create_set_speeds(client, 0.0, 0.0);
+			create_set_speeds(device, 0.0, 0.0);
 			break;
 		}
-		
-		sonar_error = error_sonar(t);
-		printf("sonar error: %f\n", sonar_error);
-		
-		if(sonar_error > 0.0)
-		{
-		
-		}
-		else if(sonar_error < 0.0)
-		{
-		
-		}
+
+		AdjustPosition(device, turret);
 	}
-	create_set_speeds(client, vx, va);
 }
 
-void Turn(create_comm_t *client) {
-	
+void Turn(create_comm_t* robot) {
+	printf("in turn function");	
 	// get delta angle
 	if( (currDirection == NORTH && nextDirection == WEST) ||
 	    (currDirection == SOUTH && nextDirection == EAST) ||
@@ -128,6 +132,7 @@ void Turn(create_comm_t *client) {
 		(currDirection == WEST && nextDirection == SOUTH) )
 	{
 		delta = M_PI/2;
+		printf("turning pi/2\n");
 	}
 		
 	else if( (currDirection == NORTH && nextDirection == SOUTH) ||
@@ -136,6 +141,7 @@ void Turn(create_comm_t *client) {
 			 (currDirection == WEST && nextDirection == EAST)   )
 	{
 		delta = M_PI;
+		printf("turning pi\n");
 	}
 		
 	else if( (currDirection == NORTH && nextDirection == EAST) ||
@@ -144,15 +150,27 @@ void Turn(create_comm_t *client) {
 	         (currDirection == WEST && nextDirection == NORTH)  )
 	{
 		delta = -M_PI/2;
+		printf("turning -pi/2\n");
 	}
-	
+	else
+	{
+		delta = 0.0;
+		printf("no need to turn\n");
+	}
+
+
 	// rotate bot by delta
-	angle_error = error_ta(client, delta);
+	angle_error = error_ta(robot, delta);
 	while (fabs(angle_error) > 0.1)
 	{
-		angle_error = error_ta(client, delta);
+		position = create_get_sensors(robot, TIMEOUT);
+		printf("in turn while loop\n");
+		angle_error = error_ta(robot, delta);
+		printf("angle_error: %f\n",angle_error);
 		va = PID_A(angle_error);
-		create_set_speeds(client, 0, va);
+		//va = angle_error;
+		printf("va: %f\n",va);
+		create_set_speeds(robot, 0.0, va);
 	}
 	
 	// reassign the nextDirection to now be the current direction
@@ -165,30 +183,48 @@ void Turn(create_comm_t *client) {
  * */
 float error_ir(turret_comm_t *r)
 {
-  turret_get_ir(r);
-    ir_r = firFilter(filter, r->ir[0]);
-      ir_l = firFilter(filter, r->ir[1]);
+	turret_get_ir(r);
+	ir_r = firFilter(filter, r->ir[0]);
+ 	ir_l = firFilter(filter, r->ir[1]);
         ir_error = (ir_r - ir_l);
-	  return ir_error;
-	  }
+	return ir_error;
+}
 	   
-	   /* error_sonar()
-	    * */
-	   float error_sonar(turret_comm_t *s)
-	   {
-	     turret_get_sonar(s);
-	       sonar_r = firFilter(filter, s->sonar[0]);
-	         sonar_l = firFilter(filter, s->sonar[1]);
-		   if(sonar_r > 650.0){
-		       sonar_error = (542.5 - sonar_l);
-		         }
-			   else if(sonar_l > 650.0){
-			       sonar_error = (542.5 - sonar_r);
-			         }  
-				   else{
-				       sonar_error = (sonar_r - sonar_l);
-				         }
-					   return sonar_error;
-					   }
+/* error_sonar()
+ * */
+float error_sonar(turret_comm_t *s)
+{
+	turret_get_sonar(s);
+	sonar_r = firFilter(filter, s->sonar[0]);
+	sonar_l = firFilter(filter, s->sonar[1]);
+	if(sonar_r > 650.0){
+		sonar_error = (542.5 - sonar_l);
+	}
+	else if(sonar_l > 650.0){
+		sonar_error = (542.5 - sonar_r);
+	}  
+	else{
+		sonar_error = (sonar_r - sonar_l);
+	}
+	return sonar_error;
+}
 
+/* error_tx()
+ * position2d: current px,py,pa positions for robot
+ * targetx:    x-coordinate destination
+ */
+float error_tx(create_comm_t *position2d, int targetPos)
+{
+	return (targetPos - position2d->ox);
+}
+
+/* error_ta()
+ * position2d:  current px,py,pa positions for robot
+ * targetAngle: angle to turn to
+ */
+float error_ta(create_comm_t *position2d, float targetAngle)
+{
+	printf("position2d->oa: %f\n",position2d->oa);
+  	return (targetAngle - c->oa);
+}
 

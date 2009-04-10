@@ -1,6 +1,5 @@
 SRCS=maze.c PID.c filter.c error.c
 TARGET=maze
-WAYPOINTS=waypoints.txt
 ROBOT=Johnny5
 CDIR=/opt/gumstix-buildroot/build_arm_nofpu/staging_dir/arm-linux-uclibcgnueabi/bin
 CFLAGS=-Os -Wall -march=iwmmxt -mtune=iwmmxt -mcpu=iwmmxt -I /usr/share/pittCreate-API/include
@@ -13,4 +12,4 @@ ${TARGET}:
 
 install:
 		scp ${TARGET} csbot@${ROBOT}:
-		scp ${WAYPOINTS} csbot@${ROBOT}:
+
