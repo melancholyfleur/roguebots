@@ -61,7 +61,7 @@ float error_tx(create_comm_t *position2d, float targetPos)
 float error_ta(create_comm_t *position2d, float targetAngle)
 {
 	printf("position2d->oa: %f\n",position2d->oa);
-	return (targetAngle - position2d->oa);
+	return (targetAngle - fabs(position2d->oa));
 }
 
 

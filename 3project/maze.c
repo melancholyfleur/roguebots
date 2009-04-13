@@ -141,6 +141,7 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 
 		AdjustPosition(device, turret);
 	}
+	distToMove += 0.8;
 	return 0;
 }
 
