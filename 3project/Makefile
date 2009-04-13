@@ -1,4 +1,4 @@
-SRCS=maze.c PID.c filter.c
+SRCS=maze.c error.c PID.c filter.c
 TARGET=maze
 ROBOT=Johnny5
 CDIR=/opt/gumstix-buildroot/build_arm_nofpu/staging_dir/arm-linux-uclibcgnueabi/bin
@@ -12,4 +12,7 @@ ${TARGET}:
 
 install:
 		scp ${TARGET} csbot@${ROBOT}:
+
+clean:
+		rm ${TARGET}
 
