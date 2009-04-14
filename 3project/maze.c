@@ -110,13 +110,32 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 {
 	printf("in movetoneighbor function\n");
 	nextDirection = target;
+
+	//this sets the distance the robot will move based on its direction
+	//and the universal coordinate system
+	position = create_get_sensors(device, TIMEOUT);
+	currPos.x = device->ox;
+	currPos.y = device->oy;
 	if(Turn(device)){
 		return 1;
 	}
-	position = create_get_sensors(device, TIMEOUT);
+	if(target == NORTH){
+		distToMove = currPos.y - distBtwnCells;
+	}
+	else if(target == SOUTH){
+		distToMove = currPos.y + distBtwnCells;
+	}
+	else if(target == WEST){
+		distToMove = currPos.x - distBtwnCells;
+	}
+	else if(target == EAST){
+		distToMove = currPos.x + distBtwnCells;
+	}
 	dist_error = error_tx(device, distToMove);
 	printf("dist_error: %f\n",dist_error);
-	while(dist_error > BUFFER_DIST)
+	//
+	
+	while(fabs(dist_error) > BUFFER_DIST)
 	{
 		printf("in move while loop\n");
 		position = create_get_sensors(device, TIMEOUT);
@@ -175,7 +194,7 @@ int Turn(create_comm_t* robot) {
 		(currDirection == WEST && nextDirection == SOUTH) )
 	{
 		target_angle = (3*M_PI)/2;
-  }
+  	}
 	else
 	{
 		target_angle = 0.0;

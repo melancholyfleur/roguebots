@@ -32,6 +32,11 @@
 #define EAST 2
 #define WEST 3
 
+typedef struct {
+	float x;
+	float y;
+} currentPosition;
+
 /* Global Variables */
 turret_comm_t *r;
 create_comm_t *c;
@@ -54,12 +59,14 @@ float dist           = 0.0;	      // distance between two cartisian coords
 float new_angle      = 0.0;	      // new angle that the robot must turn
 float curr_angle     = 0.0;
 float target_angle   = 0.0;
-float distToMove     = 0.8;
+float distToMove     = 0.0;
+float distBtwnCells  = 0.8;
 int position	     = 0;	          // ox, oy, and oa of robot
 int currDirection    = 0;
 int nextDirection    = START_DIR;
 int direction        = 0;
 int directions[10];
+currentPosition currPos;
 
 /* Function Declarations */
 int Turn(create_comm_t*);
