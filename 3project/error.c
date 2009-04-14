@@ -34,10 +34,10 @@ float error_sonar(turret_comm_t *s)
 	sonar_r = firFilter(filter, s->sonar[0]);
 	sonar_l = firFilter(filter, s->sonar[1]);
 	if(sonar_r > 70.0){
-		sonar_error = (35.0 - sonar_l);
+		sonar_error = (36.0 - sonar_l);
 	}
 	else if(sonar_l > 70.0){
-		sonar_error = (35.0 - sonar_r);
+		sonar_error = (36.0 - sonar_r);
 	}  
 	else{
 		sonar_error = (sonar_r - sonar_l);
@@ -49,9 +49,34 @@ float error_sonar(turret_comm_t *s)
  * position2d: current px,py,pa positions for robot
  * targetx:    x-coordinate destination
  */
-float error_tx(create_comm_t *position2d, float targetPos)
+float error_tx(create_comm_t *position2d, float targetPos, int direction)
 {
-	return (targetPos - fabs(position2d->ox));
+	/*if(direction == 0){
+		printf("position2d->ox: %f\n",position2d->ox);
+		printf("position2d->oy: %f\n",position2d->oy);
+		return (targetPos - fabs(position2d->oy));	
+	}
+	else if(direction == 1){
+		printf("position2d->ox: %f\n",position2d->ox);
+		printf("position2d->oy: %f\n",position2d->oy);
+		return(targetPos - position2d->oy);
+	}
+	else if(direction == 2){
+		printf("position2d->ox: %f\n",position2d->ox);
+		printf("position2d->oy: %f\n",position2d->oy);
+		return (targetPos - position2d->ox);
+	}
+	else{
+		printf("position2d->ox: %f\n",position2d->ox);
+		printf("position2d->oy: %f\n",position2d->oy);
+		return (targetPos - fabs(position2d->ox));
+	}*/
+	if(direction == 0 || direction == 1){
+		return(targetPos - fabs(position2d->oy));
+	}
+	else{
+		return(targetPos - fabs(position2d->ox));
+	}
 }
 
 /* error_ta()
@@ -60,7 +85,7 @@ float error_tx(create_comm_t *position2d, float targetPos)
  */
 float error_ta(create_comm_t *position2d, float targetAngle)
 {
-	printf("position2d->oa: %f\n",position2d->oa);
+	//printf("position2d->oa: %f\n",position2d->oa);
 	return (targetAngle - position2d->oa);
 }
 

@@ -24,7 +24,7 @@
 #define FULLCONTROL 1
 
 #define TIMEOUT 100
-#define BUFFER_DIST 0.005
+#define BUFFER_DIST 0.02
 #define WHICH_SENSOR 0		// 0 = sonar, 1 = ir
 #define START_DIR 2
 #define NORTH 0
@@ -60,7 +60,7 @@ float new_angle      = 0.0;	      // new angle that the robot must turn
 float curr_angle     = 0.0;
 float target_angle   = 0.0;
 float distToMove     = 0.0;
-float distBtwnCells  = 0.8;
+float distBtwnCells  = 0.7;
 int position	     = 0;	          // ox, oy, and oa of robot
 int currDirection    = 0;
 int nextDirection    = START_DIR;

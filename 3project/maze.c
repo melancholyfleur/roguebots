@@ -31,7 +31,7 @@ int main(int argc, const char **argv)
 	turret_init(r);	
 	// sonar
 	if(!WHICH_SENSOR){
-		turret_SetServo(r,90);
+		turret_SetServo(r,80);
 	}
 	//ir
 	else{
@@ -92,11 +92,13 @@ void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
 	if(sonarErrorTemp > 0.0)
 	{
 		va += (M_PI/16);
+		printf("increasing va: %f\n",va);
 		create_set_speeds(rb,vx,va);
 	}
 	else if(sonarErrorTemp < 0.0)
 	{
 		va -= (M_PI/16);
+		printf("decreasing va: %f\n",va);
 		create_set_speeds(rb,vx,va);	
 	}	
 }
@@ -120,27 +122,30 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 		return 1;
 	}
 	if(target == NORTH){
-		distToMove = currPos.y - distBtwnCells;
+		distToMove = currPos.y + distBtwnCells;
 	}
 	else if(target == SOUTH){
 		distToMove = currPos.y + distBtwnCells;
 	}
 	else if(target == WEST){
-		distToMove = currPos.x - distBtwnCells;
+		distToMove = currPos.x + distBtwnCells;
 	}
 	else if(target == EAST){
 		distToMove = currPos.x + distBtwnCells;
 	}
-	dist_error = error_tx(device, distToMove);
+	printf("distToMove: %f\n",distToMove);
+	dist_error = error_tx(device, distToMove, target);
+	//if(dist_error > 0.9 || dist_error < 0.0){dist_error = 0.8;}
 	printf("dist_error: %f\n",dist_error);
 	//
 	
-	while(fabs(dist_error) > BUFFER_DIST)
+	while(dist_error > BUFFER_DIST)
 	{
 		printf("in move while loop\n");
 		position = create_get_sensors(device, TIMEOUT);
 		
-		dist_error = error_tx(device, distToMove);
+		dist_error = error_tx(device, distToMove, target);
+		//if(dist_error > 0.9){dist_error = 0.8;}
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(dist_error);
@@ -149,6 +154,8 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 		va = PID_A(angle_error);
 		printf("va: %f\n", va);
 		
+		if(vx > 1.0) {vx = 0.5;}
+
 		create_set_speeds(device, vx, va);
 		
 		if(device->bumper_left == 1 || device->bumper_right == 1) 
@@ -158,10 +165,9 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 			return 1;
 		}
 
-		AdjustPosition(device, turret);
 	}
-	distToMove += 0.8;
 	return 0;
+		AdjustPosition(device, turret);
 }
 
 int Turn(create_comm_t* robot) {
@@ -204,7 +210,7 @@ int Turn(create_comm_t* robot) {
 
 	// rotate bot by delta
 	angle_error = error_ta(robot, target_angle);
-	while (fabs(angle_error) > 0.2)
+	while (fabs(angle_error) > 0.3)
 	{
 		position = create_get_sensors(robot, TIMEOUT);
 		printf("in turn while loop\n");

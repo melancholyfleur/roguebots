@@ -18,7 +18,7 @@
 
 float error_ir(turret_comm_t*);
 float error_sonar(turret_comm_t*);
-float error_tx(create_comm_t*, float);
+float error_tx(create_comm_t*, float, int);
 float error_ta(create_comm_t*, float);
 
 #endif
