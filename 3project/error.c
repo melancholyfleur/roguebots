@@ -51,7 +51,7 @@ float error_sonar(turret_comm_t *s)
  */
 float error_tx(create_comm_t *position2d, float targetPos, int direction)
 {
-	/*if(direction == 0){
+	if(direction == 0){
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return (targetPos - fabs(position2d->oy));	
@@ -70,12 +70,6 @@ float error_tx(create_comm_t *position2d, float targetPos, int direction)
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return (targetPos - fabs(position2d->ox));
-	}*/
-	if(direction == 0 || direction == 1){
-		return(targetPos - fabs(position2d->oy));
-	}
-	else{
-		return(targetPos - fabs(position2d->ox));
 	}
 }
 

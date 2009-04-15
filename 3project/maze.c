@@ -131,11 +131,11 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 		distToMove = currPos.x + distBtwnCells;
 	}
 	else if(target == EAST){
-		distToMove = currPos.x + distBtwnCells;
+		if(currPos.x < 0.0){distToMove = distBtwnCells;}
+		distToMove = distBtwnCells + currPos.x;
 	}
 	printf("distToMove: %f\n",distToMove);
 	dist_error = error_tx(device, distToMove, target);
-	//if(dist_error > 0.9 || dist_error < 0.0){dist_error = 0.8;}
 	printf("dist_error: %f\n",dist_error);
 	//
 	
@@ -145,7 +145,6 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 		position = create_get_sensors(device, TIMEOUT);
 		
 		dist_error = error_tx(device, distToMove, target);
-		//if(dist_error > 0.9){dist_error = 0.8;}
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(dist_error);
