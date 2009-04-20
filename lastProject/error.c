@@ -34,10 +34,10 @@ float error_sonar(turret_comm_t *s)
 	sonar_r = firFilter(filter, s->sonar[0]);
 	sonar_l = firFilter(filter, s->sonar[1]);
 	if(sonar_r > 70.0){
-		sonar_error = (36.0 - sonar_l);
+		sonar_error = (sonar_l - 35.0);
 	}
 	else if(sonar_l > 70.0){
-		sonar_error = (36.0 - sonar_r);
+		sonar_error = (35.0 - sonar_r);
 	}  
 	else{
 		sonar_error = (sonar_r - sonar_l);

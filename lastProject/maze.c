@@ -31,7 +31,7 @@ int main(int argc, const char **argv)
 	turret_init(r);	
 	// sonar
 	if(!WHICH_SENSOR){
-		turret_SetServo(r,80);
+		turret_SetServo(r,90);
 	}
 	//ir
 	else{
@@ -89,17 +89,17 @@ void signal_interrupt(int arg)
 void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
 	sonarErrorTemp = error_sonar(tr);
 	printf("in AdjustPosition\nsonar error: %f\n", sonarErrorTemp);
-	if(sonarErrorTemp > 0.0)
+	if(sonarErrorTemp < 0.0)
 	{
 		va += (M_PI/16);
 		printf("increasing va: %f\n",va);
-		create_set_speeds(rb,vx,va);
+		create_set_speeds(rb,0.0,va);
 	}
-	else if(sonarErrorTemp < 0.0)
+	else if(sonarErrorTemp > 0.0)
 	{
 		va -= (M_PI/16);
 		printf("decreasing va: %f\n",va);
-		create_set_speeds(rb,vx,va);	
+		create_set_speeds(rb,0.0,va);	
 	}	
 }
 
