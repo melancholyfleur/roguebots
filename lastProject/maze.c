@@ -77,7 +77,7 @@ int main(int argc, const char **argv)
 
 void signal_interrupt(int arg)
 {
-	printf("Received interrupt. Exiting Programming.");
+	printf("Received interrupt. Exiting Programming.\n");
 	create_set_speeds(c,0.0,0.0);
 	create_close(c);
 	create_destroy(c);
@@ -87,7 +87,7 @@ void signal_interrupt(int arg)
 }
 
 void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
-	sonarErrorTemp = error_sonar(tr);
+	float sonarErrorTemp = error_sonar(tr);
 	printf("in AdjustPosition\nsonar error: %f\n", sonarErrorTemp);
 	if(sonarErrorTemp < 0.0)
 	{
@@ -166,7 +166,10 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 
 	}
 	return 0;
-		AdjustPosition(device, turret);
+	
+	AdjustPosition(device, turret);
+	unsigned int config = WhatDoISee(turret);
+	printf("I see this: %u", config);
 }
 
 int Turn(create_comm_t* robot) {

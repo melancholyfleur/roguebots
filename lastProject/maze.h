@@ -41,7 +41,6 @@ typedef struct {
 turret_comm_t *r;
 create_comm_t *c;
 float dist_error     = 0.0;
-float sonarErrorTemp = 0.0;
 float angle_error    = 0.0;
 float vx             = 0.0;             // x velocity
 float va             = 0.0;             // angle velocity
@@ -53,15 +52,15 @@ float vVectorY       = 0.0;	      // V vector - calculate angle robot must turn
 float vVectorZ       = 0.0;	      //
 float dot_product    = 0.0;	      // dot product of vectors U and V
 float mag_u          = 0.0;	      // magnitude of vector U
-float mag_v	     = 0.0;	      // magnitude of vector V
-float theta	     = 0.0;	      // theta value for angle betwee U and V
+float mag_v	         = 0.0;	      // magnitude of vector V
+float theta	         = 0.0;	      // theta value for angle betwee U and V
 float dist           = 0.0;	      // distance between two cartisian coords
 float new_angle      = 0.0;	      // new angle that the robot must turn
 float curr_angle     = 0.0;
 float target_angle   = 0.0;
 float distToMove     = 0.0;
 float distBtwnCells  = 0.7;
-int position	     = 0;	          // ox, oy, and oa of robot
+int position	       = 0;	          // ox, oy, and oa of robot
 int currDirection    = 0;
 int nextDirection    = START_DIR;
 int direction        = 0;

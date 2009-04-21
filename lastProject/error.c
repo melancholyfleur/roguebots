@@ -83,4 +83,33 @@ float error_ta(create_comm_t *position2d, float targetAngle)
 	return (targetAngle - position2d->oa);
 }
 
+/* WhatDoISee()
+ */
+int WhatDoISee(turret_comm_t* turr){
+	turret_get_sonar(turr);
+	float right = firFilter(filter, turr->sonar[0]);
+	float left = firFilter(filter, turr->sonar[1]);
+	turret_get_ir(turr);
+	float front = firFilter(filter, turr->ir[0]);
+	float back = firFilter(filter, turr->ir[1]);
+	
+	unsigned int flag;
+	
+	if(front < 40.0){
+		flag &= FRONT_SET;
+	}
+	if(back < 40.0){
+		flag &= BACK_SET;
+	}
+	if(right < 40.0){
+		flag &= RIGHT_SET;
+	}
+	if(left < 40.0){
+		flag &= LEFT_SET;
+	}
+
+	currConfig = flag;
+	return currConfig;
+
+}
 
