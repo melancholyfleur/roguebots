@@ -52,19 +52,19 @@ float error_sonar(turret_comm_t *s)
  * position2d: current px,py,pa positions for robot
  * targetx:    x-coordinate destination
  */
-float error_tx(create_comm_t *position2d, float targetPos, float angToMove)
+float error_tx(create_comm_t *position2d, float targetPos, int direction)
 {
-	if(angToMove == (3*M_PI/2)){
+	if(direction == 0){
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return (targetPos - fabs(position2d->oy));	
 	}
-	else if(angToMove == (M_PI/2)){
+	else if(direction == 1){
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return(targetPos - position2d->oy);
 	}
-	else if(angToMove == 0.0){
+	else if(direction == 2){
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return (targetPos - position2d->ox);
@@ -86,35 +86,6 @@ float error_ta(create_comm_t *position2d, float targetAngle)
 	return (targetAngle - position2d->oa);
 }
 
-/* WhatDoISee()
- */
-int* WhatDoISee(turret_comm_t* turr){
-	turret_get_sonar(turr);
-	float right = firFilter(filter_sonarR, turr->sonar[0]);
-	float left = firFilter(filter_sonarL, turr->sonar[1]);
-	turret_get_ir(turr);
-	float front = firFilter(filter_irF, turr->ir[1]);
-	
-	openDirs[0] = 0;	//front
-	openDirs[1] = 1;	//right
-	openDirs[2] = 2;	//left
-
-	if(front < 45.0 && front > 0.0){
-		printf("sees front\n");
-		openDirs[0] = 1;
-	}
-	if(right < 45.0 && right > 0.0){
-		printf("sees right\n");
-		openDirs[1] = 1;
-	}
-	if(left < 45.0 && left > 0.0){
-		printf("sees left\n");
-		openDirs[2] = 1;
-	}
-
-	return openDirs;
-
-}
 
 
 

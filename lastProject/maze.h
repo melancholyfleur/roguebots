@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include <unistd.h>
 #include <signal.h>
 #include "TurretAPI.h"
@@ -45,12 +46,20 @@ float distBtwnCells  = 0.7;
 int position	       = 0;	          // ox, oy, and oa of robot
 float angle          = 0.0;
 currPosition currPos;
+int openDirs[3];
+float probArray[3];
+float randProb;
+int currDirection;
+int nextDirection;
+float target_angle;
 
 /* Function Declarations */
-int Turn(create_comm_t*,float);
-int MoveToNeighboringCell(create_comm_t*, turret_comm_t*,float);
+int Turn(create_comm_t*,int);
+int MoveToNeighboringCell(create_comm_t*, turret_comm_t*,int);
 void AdjustPosition(create_comm_t*, turret_comm_t*);
 void signal_interrupt(int);
+int whereToTurn(float[]);
+int* WhatDoISee(turret_comm_t*);
 
 #endif
 

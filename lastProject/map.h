@@ -24,7 +24,7 @@ typedef struct{
 
 probability *head;
 
-void setProbabilities(int*, int);
+probability* setProbabilities(int*, int);
 void decrementProbabilities();
 
 #endif

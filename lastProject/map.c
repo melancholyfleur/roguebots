@@ -69,11 +69,12 @@ void decrementProbabilities(){
 	}
 }
 
-void setProbabilities(int* options, int currRoom){
-	if(options[0] == 1 && options[1] == 1 && options[2] == 2){
-		head[currRoom].fr = 0.3;
-		head[currRoom].rt = 0.3;
-		head[currRoom].lf = 0.3;
+probability* setProbabilities(int* options, int currRoom){
+	//need to implement: if this is a new room?
+	if(options[0] == 1 && options[1] == 1 && options[2] == 1){
+		head[currRoom].fr = 0.33;
+		head[currRoom].rt = 0.33;
+		head[currRoom].lf = 0.33;
 	}
 	else if(options[0] == 1 && options[1] == 1){	
 		head[currRoom].fr = 0.5;
@@ -105,6 +106,7 @@ void setProbabilities(int* options, int currRoom){
 		head[currRoom].rt = 0.0;
 		head[currRoom].lf = 1.0;
 	}
+	return head;
 }
 
 

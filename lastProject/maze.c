@@ -45,28 +45,68 @@ int main(int argc, const char **argv)
 	printf("created a filter\n");
 
 	signal(SIGINT,signal_interrupt);
-	char* input = NULL;
 	int* whereAmI;
 	int i = 0;
+	int j = 0;
+	int atADeadEnd = 1;
 	while(1){
-		printf("Ohai. Run robot now.\n");
-		scanf("%s",input);
 		whereAmI = WhatDoISee(r);
-		setProbabilities(whereAmI, i);
-		//where Do I Turn?
-		//need to set which exit is being taken
-		//also set angle to turn
-		MoveToNeighboringCell(c,r,angle);
+		for(j=0; j < sizeof(whereAmI); j++){
+			if(whereAmI[i] == 1){
+				atADeadEnd = 0;
+			}
+		}
+		if(atADeadEnd){
+			char* input = NULL;
+			printf("Am I at the goal?\n");
+			scanf("%s\n", input);
+			if(input == "n")
+			{
+				printf("Dead end. Try again.\n"); 
+				decrementProbabilities();
+				i = 0;
+			}
+			else if(input == "y") {
+				// adjust values positively
+				printf("Goal has been found.");
+				break;
+			}
+		}
+		else		// bot has some options
+		{
+			probability* currProb = setProbabilities(whereAmI, i);
+			// front
+			if(whereAmI[0] != 0)
+			{
+				randProb = fmod(rand(),(currProb[i].fr + 1.0));
+				probArray[0] = randProb;
+			}
+			else
+				probArray[0] = 0.0;
+				  
+			// right
+			if(whereAmI[1] != 0)
+			{
+				randProb = fmod(rand(),(currProb[i].rt + 1.0));
+				probArray[1] = randProb;
+			}
+			else
+				probArray[1] = 0.0;
+				
+			// left
+			if(whereAmI[2] != 0)
+			{
+				randProb = fmod(rand(),(currProb[i].lf + 1.0));
+				probArray[2] = randProb;
+			}
+			else
+			{
+				probArray[2] = 0.0;
+			}
+			int dir = whereToTurn(probArray);
+			MoveToNeighboringCell(c,r,dir);
+		}
 		i++;
-		if(input == "not yet"){
-			printf("Dead end. Try again.\n"); 
-			decrementProbabilities();
-			i = 0;
-		}
-		if(input == "yes"){
-			printf("Goal was found! Great job!\n");
-			break;
-		}
 	}
 	
 	// Shutdown and tidy up
@@ -78,6 +118,20 @@ int main(int argc, const char **argv)
 	exit(0);
 	
 	return 0;
+}
+
+int whereToTurn(float a[]){
+	float max;
+	max = a[0];
+	int i = 0;
+	int direction = 0;
+	for(i = 0; i < sizeof(a); i++){
+		if(max>a[i]){
+			max = a[i];
+		}
+		direction = i;
+	}
+	return direction;
 }
 
 void signal_interrupt(int arg)
@@ -113,30 +167,28 @@ void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float ang)
+int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int target)
 {
 	printf("in movetoneighbor function\n");
-
-	//this sets the distance the robot will move based on its direction
-	//and the universal coordinate system
+	
 	position = create_get_sensors(device, TIMEOUT);
 	currPos.x = device->ox;
 	currPos.y = device->oy;
-	if(Turn(device,ang)){
+	if(Turn(device,target)){
 		return 1;
 	}
-	if(ang == (M_PI/2) || ang == (3*M_PI/2)){
+	if(target == 0 || target == 1){
 		distToMove = currPos.y + distBtwnCells;
 	}
-	else if(ang == M_PI){
+	else if(target == 3){
 		distToMove = currPos.x + distBtwnCells;
 	}
-	else if(ang == 0.0){
+	else if(target == 2){
 		if(currPos.x < 0.0){distToMove = distBtwnCells;}
 		distToMove = distBtwnCells + currPos.x;
 	}
 	printf("distToMove: %f\n",distToMove);
-	dist_error = error_tx(device, distToMove, ang);
+	dist_error = error_tx(device, distToMove, target);
 	printf("dist_error: %f\n",dist_error);
 	//
 	
@@ -145,7 +197,7 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float an
 		printf("in move while loop\n");
 		position = create_get_sensors(device, TIMEOUT);
 		
-		dist_error = error_tx(device, distToMove, ang);
+		dist_error = error_tx(device, distToMove, target);
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(dist_error);
@@ -171,8 +223,19 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float an
 	return 0;	
 }
 
-int Turn(create_comm_t* robot,float target_angle) {
+int Turn(create_comm_t* robot, int target) {
 	printf("in turn function\n");	
+
+	//get delta
+	if(target == 0){
+		target_angle = 0;
+	}
+	else if(target == 1){
+		target_angle = -M_PI/2;
+	}
+	else if(target == 2){
+		target_angle = M_PI/2;
+	}
 
 	// rotate bot by delta
 	angle_error = error_ta(robot, target_angle);
@@ -192,9 +255,37 @@ int Turn(create_comm_t* robot,float target_angle) {
 			return 1;
 		}
 	}
-	
 	return 0;
 }
 
+/* WhatDoISee()
+ */
+int* WhatDoISee(turret_comm_t* turr){
+	turret_get_sonar(turr);
+	float right = firFilter(filter_sonarR, turr->sonar[0]);
+	float left = firFilter(filter_sonarL, turr->sonar[1]);
+	turret_get_ir(turr);
+	float front = firFilter(filter_irF, turr->ir[1]);
+	
+	openDirs[0] = 1;	//front
+	openDirs[1] = 1;	//right
+	openDirs[2] = 1;	//left
+
+	if(front < 45.0 && front > 0.0){
+		printf("sees front\n");
+		openDirs[0] = 0;
+	}
+	if(right < 45.0 && right > 0.0){
+		printf("sees right\n");
+		openDirs[1] = 0;
+	}
+	if(left < 45.0 && left > 0.0){
+		printf("sees left\n");
+		openDirs[2] = 0;
+	}
+
+	return openDirs;
+
+}
 
 
