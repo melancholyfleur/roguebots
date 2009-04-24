@@ -38,30 +38,33 @@ int main(int argc, const char **argv)
 	  	turret_SetServo(r,0);
 	}
 	
-	filter = firFilterCreate();
-	printf("created a filter\n");
-
-	currDirection = START_DIR;
-	directions[0] = WEST;
-	directions[1] = NORTH;
-	directions[2] = EAST;
-	directions[3] = NORTH;
-	directions[4] = EAST;
-	directions[5] = EAST;
-	directions[6] = NORTH;
-	directions[7] = NORTH;
-	directions[8] = EAST;
-	directions[9] = EAST;
+	filter_sonarR = firFilterCreate();
+	filter_sonarL = firFilterCreate();
+	filter_irF = firFilterCreate();
+	filter_irB = firFilterCreate();
+	//printf("created a filter\n");
 
 	signal(SIGINT,signal_interrupt);
-
-	printf("entering move-for-loop\n");
-	int i;
-	for(i = 0; i < sizeof(directions); i++)
-	{
-		direction = directions[i];
-		if(MoveToNeighboringCell(c, r, direction))
-			break;	
+	char* input;
+	int* whereAmI;
+	int i, j;
+	while(1){
+		printf("Ohai. Run robot now.\n");
+		scanf("%s",input);
+		path[i] = WhatDoISee(turret);
+		paths[j] = path;
+		setProbabilities(whereAmI, i);
+		
+		i++;
+		if(input == "not yet"){
+			printf("Dead end. Try again.\n") 
+			i = 0;
+			j++;
+		}
+		if(input == "yes"){
+			printf("Goal was found! Great job!\n");
+			break;
+		}
 	}
 	
 	// Shutdown and tidy up
@@ -93,13 +96,13 @@ void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
 	{
 		va += (M_PI/16);
 		printf("increasing va: %f\n",va);
-		create_set_speeds(rb,0.0,va);
+		create_set_speeds(rb,vx,va);
 	}
 	else if(sonarErrorTemp > 0.0)
 	{
 		va -= (M_PI/16);
 		printf("decreasing va: %f\n",va);
-		create_set_speeds(rb,0.0,va);	
+		create_set_speeds(rb,vx,va);	
 	}	
 }
 
@@ -157,19 +160,17 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 
 		create_set_speeds(device, vx, va);
 		
+		AdjustPosition(device, turret);
+		
 		if(device->bumper_left == 1 || device->bumper_right == 1) 
 		{
 			create_set_speeds(device, 0.0, 0.0);
 			printf("bumper brake\n");
 			return 1;
 		}
-
 	}
-	return 0;
 	
-	AdjustPosition(device, turret);
-	unsigned int config = WhatDoISee(turret);
-	printf("I see this: %u", config);
+	return 0;	
 }
 
 int Turn(create_comm_t* robot) {

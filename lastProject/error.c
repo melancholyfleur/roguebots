@@ -20,8 +20,8 @@ float sonar_l      = 0.0;
 float error_ir(turret_comm_t *r)
 {
 	turret_get_ir(r);
-	ir_r = firFilter(filter, r->ir[0]);
- 	ir_l = firFilter(filter, r->ir[1]);
+	ir_r = firFilter(filter_irB, r->ir[0]);
+ 	ir_l = firFilter(filter_irF, r->ir[1]);
         ir_error = (ir_r - ir_l);
 	return ir_error;
 }
@@ -31,8 +31,11 @@ float error_ir(turret_comm_t *r)
 float error_sonar(turret_comm_t *s)
 {
 	turret_get_sonar(s);
-	sonar_r = firFilter(filter, s->sonar[0]);
-	sonar_l = firFilter(filter, s->sonar[1]);
+	printf("in error_sonar\n");
+	sonar_r = firFilter(filter_sonarR, s->sonar[0]);
+	printf("have sonar_r: %f\n",sonar_r);
+	sonar_l = firFilter(filter_sonarL, s->sonar[1]);
+	printf("have sonar_l: %f\n",sonar_l);
 	if(sonar_r > 70.0){
 		sonar_error = (sonar_l - 35.0);
 	}
@@ -85,31 +88,61 @@ float error_ta(create_comm_t *position2d, float targetAngle)
 
 /* WhatDoISee()
  */
-int WhatDoISee(turret_comm_t* turr){
+int* WhatDoISee(turret_comm_t* turr){
 	turret_get_sonar(turr);
-	float right = firFilter(filter, turr->sonar[0]);
-	float left = firFilter(filter, turr->sonar[1]);
+	float right = firFilter(filter_sonarR, turr->sonar[0]);
+	float left = firFilter(filter_sonarL, turr->sonar[1]);
 	turret_get_ir(turr);
-	float front = firFilter(filter, turr->ir[0]);
-	float back = firFilter(filter, turr->ir[1]);
+	float front = firFilter(filter_irF, turr->ir[1]);
 	
-	unsigned int flag;
-	
-	if(front < 40.0){
-		flag &= FRONT_SET;
+	openDirs[0] = 0;	//front
+	openDirs[1] = 1;	//right
+	openDirs[2] = 2;	//left
+
+	if(front < 45.0 && front > 0.0){
+		printf("sees front\n");
+		openDirs[0] = 1;
 	}
-	if(back < 40.0){
-		flag &= BACK_SET;
+	if(right < 45.0 && right > 0.0){
+		printf("sees right\n");
+		openDirs[1] = 1;
 	}
-	if(right < 40.0){
-		flag &= RIGHT_SET;
-	}
-	if(left < 40.0){
-		flag &= LEFT_SET;
+	if(left < 45.0 && left > 0.0){
+		printf("sees left\n");
+		openDirs[2] = 1;
 	}
 
-	currConfig = flag;
-	return currConfig;
+	return openDirs;
 
 }
+
+void setProbabilities(int* options, int currRoom){
+	if(options[0] == 1 && position[1] == 1 && position[2] == 2){
+		path[currRoom].fr = 0.3;
+		path[currRoom].rt = 0.3;
+		path[currRoom].lf = 0.3;
+	}
+	else if(options[0] == 1 && options[1] == 1){	
+		path[currRoom].fr = 0.5;
+		path[currRoom].rt = 0.5;
+	}
+	else if(options[0] == 1 && options[2] == 1){
+		path[currRoom].fr = 0.5;
+		path[currRoom].lf = 0.5;
+	}
+	else if(options[1] == 1 && options[2] == 1){
+		path[currRoom].lf = 0.5;
+		path[currRoom].rt = 0.5;
+	}
+	else if(options[0] == 1){
+		path[currRoom].fr = 1.0;
+	}
+	else if(options[1] == 1){
+		path[currRoom].rt = 1.0;
+	}
+	else if(options[2] == 1){
+		path[currRoom].lf = 1.0;
+	}
+}
+
 

@@ -19,8 +19,11 @@ typedef struct
   	float    samples[TAPS];
 } filter_t;
 
-
 filter_t *filter;
+filter_t *filter_sonarR;
+filter_t *filter_sonarL;
+filter_t *filter_irF;
+filter_t *filter_irB;
 filter_t *firFilterCreate();
 float firFilter(filter_t*, float);
 
