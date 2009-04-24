@@ -18,12 +18,14 @@ typedef struct{
 	float fr;
 	float lf;
 	float rt;
+	int myExit;		//0 = front, 1 = right, 2 = left
 	struct probability* next;
 }probability;
 
 probability *head;
 
 void setProbabilities(int*, int);
+void decrementProbabilities();
 
 #endif
 

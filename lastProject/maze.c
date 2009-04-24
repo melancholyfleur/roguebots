@@ -42,7 +42,7 @@ int main(int argc, const char **argv)
 	filter_sonarL = firFilterCreate();
 	filter_irF = firFilterCreate();
 	filter_irB = firFilterCreate();
-	//printf("created a filter\n");
+	printf("created a filter\n");
 
 	signal(SIGINT,signal_interrupt);
 	char* input = NULL;
@@ -54,10 +54,13 @@ int main(int argc, const char **argv)
 		whereAmI = WhatDoISee(r);
 		setProbabilities(whereAmI, i);
 		//where Do I Turn?
+		//need to set which exit is being taken
+		//also set angle to turn
 		MoveToNeighboringCell(c,r,angle);
 		i++;
 		if(input == "not yet"){
 			printf("Dead end. Try again.\n"); 
+			decrementProbabilities();
 			i = 0;
 		}
 		if(input == "yes"){
