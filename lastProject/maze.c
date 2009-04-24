@@ -48,11 +48,12 @@ int main(int argc, const char **argv)
 	int* whereAmI;
 	int i = 0;
 	int j = 0;
+	head = (probability *)malloc(sizeof(probability));
 	int atADeadEnd = 1;
 	while(1){
 		whereAmI = WhatDoISee(r);
-		for(j=0; j < sizeof(whereAmI); j++){
-			if(whereAmI[i] == 1){
+		for(j = 0; j < sizeof(whereAmI); j++){
+			if(whereAmI[j] == 1){
 				atADeadEnd = 0;
 			}
 		}
@@ -60,13 +61,12 @@ int main(int argc, const char **argv)
 			char* input = NULL;
 			printf("Am I at the goal?\n");
 			scanf("%s\n", input);
-			if(input == "n")
-			{
-				printf("Dead end. Try again.\n"); 
+			if(input == "n"){
+				printf("Dead end. Try again.\n");
 				decrementProbabilities();
 				i = 0;
 			}
-			else if(input == "y") {
+			else if(input == "y"){
 				// adjust values positively
 				printf("Goal has been found.");
 				break;
@@ -74,6 +74,7 @@ int main(int argc, const char **argv)
 		}
 		else		// bot has some options
 		{
+			printf("we have options\n");
 			probability* currProb = setProbabilities(whereAmI, i);
 			// front
 			if(whereAmI[0] != 0)

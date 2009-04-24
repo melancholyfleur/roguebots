@@ -71,38 +71,54 @@ void decrementProbabilities(){
 
 probability* setProbabilities(int* options, int currRoom){
 	//need to implement: if this is a new room?
+	printf("setting probabilities, currRoom = %d\n",currRoom);
+	printf("options[0] = %d\n",options[0]);
 	if(options[0] == 1 && options[1] == 1 && options[2] == 1){
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].fr = 0.33;
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].rt = 0.33;
 		head[currRoom].lf = 0.33;
 	}
 	else if(options[0] == 1 && options[1] == 1){	
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].fr = 0.5;
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].rt = 0.5;
 		head[currRoom].lf = 0.0;
 	}
 	else if(options[0] == 1 && options[2] == 1){
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].fr = 0.5;
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].rt = 0.0;
 		head[currRoom].lf = 0.5;
 	}
 	else if(options[1] == 1 && options[2] == 1){
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].fr = 0.0;
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].rt = 0.5;
 		head[currRoom].lf = 0.5;
 	}
 	else if(options[0] == 1){
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].fr = 1.0;
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].rt = 0.0;
 		head[currRoom].lf = 0.0;
 	}
 	else if(options[1] == 1){
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].fr = 0.0;
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].rt = 1.0;
 		head[currRoom].lf = 0.0;
 	}
 	else if(options[2] == 1){
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].fr = 0.0;
+		printf("head.fr = %f\n",head[currRoom].fr);
 		head[currRoom].rt = 0.0;
 		head[currRoom].lf = 1.0;
 	}
