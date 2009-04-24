@@ -47,19 +47,19 @@ int main(int argc, const char **argv)
 	signal(SIGINT,signal_interrupt);
 	char* input;
 	int* whereAmI;
-	int i, j;
+	int i = 0;
+	int j = 0;
 	while(1){
 		printf("Ohai. Run robot now.\n");
 		scanf("%s",input);
-		path[i] = WhatDoISee(turret);
-		paths[j] = path;
+		whereAmI = WhatDoISee(turret);
 		setProbabilities(whereAmI, i);
-		
+		//set angle ?
+		MoveToNeighboringCell(c,r,angle);
 		i++;
 		if(input == "not yet"){
 			printf("Dead end. Try again.\n") 
 			i = 0;
-			j++;
 		}
 		if(input == "yes"){
 			printf("Goal was found! Great job!\n");
@@ -111,17 +111,16 @@ void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int target)
+int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float ang)
 {
 	printf("in movetoneighbor function\n");
-	nextDirection = target;
 
 	//this sets the distance the robot will move based on its direction
 	//and the universal coordinate system
 	position = create_get_sensors(device, TIMEOUT);
 	currPos.x = device->ox;
 	currPos.y = device->oy;
-	if(Turn(device)){
+	if(Turn(device,ang)){
 		return 1;
 	}
 	if(target == NORTH){
@@ -151,16 +150,16 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(dist_error);
+		if(vx > 1.0) {vx = 0.5;}
 		printf("vx: %f\n", vx);
 		
 		va = PID_A(angle_error);
 		printf("va: %f\n", va);
 		
-		if(vx > 1.0) {vx = 0.5;}
 
 		create_set_speeds(device, vx, va);
 		
-		AdjustPosition(device, turret);
+		//AdjustPosition(device, turret);
 		
 		if(device->bumper_left == 1 || device->bumper_right == 1) 
 		{
@@ -173,7 +172,7 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 	return 0;	
 }
 
-int Turn(create_comm_t* robot) {
+int Turn(create_comm_t* robot,float target_angle) {
 	printf("in turn function\n");	
 	// get delta angle
 	if((currDirection == NORTH && nextDirection == WEST) ||

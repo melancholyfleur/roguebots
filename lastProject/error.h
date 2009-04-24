@@ -20,15 +20,6 @@
 #define RIGHT_SET 2
 #define LEFT_SET 1
 
-typedef struct{
-	float fr;
-	float lf;
-	float rt;
-}probability;
-
-probability *path;
-probability **paths;
-
 int* openDirs;
 
 unsigned int currConfig;
@@ -38,7 +29,6 @@ float error_sonar(turret_comm_t*);
 float error_tx(create_comm_t*, float, int);
 float error_ta(create_comm_t*, float);
 int* WhatDoISee(turret_comm_t*);
-void setProbabilities(int*);
 
 #endif
 

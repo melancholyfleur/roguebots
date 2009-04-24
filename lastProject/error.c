@@ -116,33 +116,5 @@ int* WhatDoISee(turret_comm_t* turr){
 
 }
 
-void setProbabilities(int* options, int currRoom){
-	if(options[0] == 1 && position[1] == 1 && position[2] == 2){
-		path[currRoom].fr = 0.3;
-		path[currRoom].rt = 0.3;
-		path[currRoom].lf = 0.3;
-	}
-	else if(options[0] == 1 && options[1] == 1){	
-		path[currRoom].fr = 0.5;
-		path[currRoom].rt = 0.5;
-	}
-	else if(options[0] == 1 && options[2] == 1){
-		path[currRoom].fr = 0.5;
-		path[currRoom].lf = 0.5;
-	}
-	else if(options[1] == 1 && options[2] == 1){
-		path[currRoom].lf = 0.5;
-		path[currRoom].rt = 0.5;
-	}
-	else if(options[0] == 1){
-		path[currRoom].fr = 1.0;
-	}
-	else if(options[1] == 1){
-		path[currRoom].rt = 1.0;
-	}
-	else if(options[2] == 1){
-		path[currRoom].lf = 1.0;
-	}
-}
 
 
