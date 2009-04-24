@@ -28,6 +28,11 @@
 #define BUFFER_DIST 0.02
 #define WHICH_SENSOR 0		// 0 = sonar, 1 = ir
 
+typedef struct{
+	float x;
+	float y;
+} currPosition;
+
 /* Global Variables */
 turret_comm_t *r;
 create_comm_t *c;
@@ -39,10 +44,11 @@ float distToMove     = 0.0;
 float distBtwnCells  = 0.7;
 int position	       = 0;	          // ox, oy, and oa of robot
 float angle          = 0.0;
+currPosition currPos;
 
 /* Function Declarations */
 int Turn(create_comm_t*,float);
-int MoveToNeighboringCell(create_comm_t*, turret_comm_t*);
+int MoveToNeighboringCell(create_comm_t*, turret_comm_t*,float);
 void AdjustPosition(create_comm_t*, turret_comm_t*);
 void signal_interrupt(int);
 

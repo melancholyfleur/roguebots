@@ -52,19 +52,19 @@ float error_sonar(turret_comm_t *s)
  * position2d: current px,py,pa positions for robot
  * targetx:    x-coordinate destination
  */
-float error_tx(create_comm_t *position2d, float targetPos, int direction)
+float error_tx(create_comm_t *position2d, float targetPos, float angToMove)
 {
-	if(direction == 0){
+	if(angToMove == (3*M_PI/2)){
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return (targetPos - fabs(position2d->oy));	
 	}
-	else if(direction == 1){
+	else if(angToMove == (M_PI/2)){
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return(targetPos - position2d->oy);
 	}
-	else if(direction == 2){
+	else if(angToMove == 0.0){
 		printf("position2d->ox: %f\n",position2d->ox);
 		printf("position2d->oy: %f\n",position2d->oy);
 		return (targetPos - position2d->ox);

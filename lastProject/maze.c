@@ -45,20 +45,19 @@ int main(int argc, const char **argv)
 	//printf("created a filter\n");
 
 	signal(SIGINT,signal_interrupt);
-	char* input;
+	char* input = NULL;
 	int* whereAmI;
 	int i = 0;
-	int j = 0;
 	while(1){
 		printf("Ohai. Run robot now.\n");
 		scanf("%s",input);
-		whereAmI = WhatDoISee(turret);
+		whereAmI = WhatDoISee(r);
 		setProbabilities(whereAmI, i);
-		//set angle ?
+		//where Do I Turn?
 		MoveToNeighboringCell(c,r,angle);
 		i++;
 		if(input == "not yet"){
-			printf("Dead end. Try again.\n") 
+			printf("Dead end. Try again.\n"); 
 			i = 0;
 		}
 		if(input == "yes"){
@@ -123,21 +122,18 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float an
 	if(Turn(device,ang)){
 		return 1;
 	}
-	if(target == NORTH){
+	if(ang == (M_PI/2) || ang == (3*M_PI/2)){
 		distToMove = currPos.y + distBtwnCells;
 	}
-	else if(target == SOUTH){
-		distToMove = currPos.y + distBtwnCells;
-	}
-	else if(target == WEST){
+	else if(ang == M_PI){
 		distToMove = currPos.x + distBtwnCells;
 	}
-	else if(target == EAST){
+	else if(ang == 0.0){
 		if(currPos.x < 0.0){distToMove = distBtwnCells;}
 		distToMove = distBtwnCells + currPos.x;
 	}
 	printf("distToMove: %f\n",distToMove);
-	dist_error = error_tx(device, distToMove, target);
+	dist_error = error_tx(device, distToMove, ang);
 	printf("dist_error: %f\n",dist_error);
 	//
 	
@@ -146,7 +142,7 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float an
 		printf("in move while loop\n");
 		position = create_get_sensors(device, TIMEOUT);
 		
-		dist_error = error_tx(device, distToMove, target);
+		dist_error = error_tx(device, distToMove, ang);
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(dist_error);
@@ -174,41 +170,6 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float an
 
 int Turn(create_comm_t* robot,float target_angle) {
 	printf("in turn function\n");	
-	// get delta angle
-	if((currDirection == NORTH && nextDirection == WEST) ||
-		(currDirection == SOUTH && nextDirection == WEST)  ||
-		(currDirection == EAST && nextDirection == WEST))
-	{
-		target_angle = M_PI;
-		printf("turning pi\n");
-	}
-		
-	else if((currDirection == SOUTH && nextDirection == EAST) ||
-		(currDirection == NORTH && nextDirection == EAST) ||
-		(currDirection == WEST && nextDirection == EAST)   )
-	{
-		target_angle = 0.0;
-		printf("turning 0.0\n");
-	}
-		
-	else if((currDirection == EAST && nextDirection == NORTH) || 
-		(currDirection == SOUTH && nextDirection == NORTH) ||
-		(currDirection == WEST && nextDirection == NORTH)  )
-	{
-		target_angle = M_PI/2;
-		printf("turning pi/2\n");
-	}
-	else if((currDirection == NORTH && nextDirection == SOUTH) ||
-		(currDirection == WEST && nextDirection == SOUTH) )
-	{
-		target_angle = (3*M_PI)/2;
-  	}
-	else
-	{
-		target_angle = 0.0;
-		printf("no need to turn\n");
-	}
-
 
 	// rotate bot by delta
 	angle_error = error_ta(robot, target_angle);
@@ -229,8 +190,6 @@ int Turn(create_comm_t* robot,float target_angle) {
 		}
 	}
 	
-	// reassign the nextDirection to now be the current direction
-	currDirection = nextDirection;
 	return 0;
 }
 

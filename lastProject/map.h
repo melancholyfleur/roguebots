@@ -18,11 +18,12 @@ typedef struct{
 	float fr;
 	float lf;
 	float rt;
-	probability* next;
+	struct probability* next;
 }probability;
 
 probability *head;
 
 void setProbabilities(int*, int);
 
+#endif
 
