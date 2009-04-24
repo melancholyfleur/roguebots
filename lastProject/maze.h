@@ -54,8 +54,8 @@ int nextDirection;
 float target_angle;
 
 /* Function Declarations */
-int Turn(create_comm_t*,int);
-int MoveToNeighboringCell(create_comm_t*, turret_comm_t*,int);
+int Turn(create_comm_t*,float);
+int MoveToNeighboringCell(create_comm_t*, turret_comm_t*,float);
 void AdjustPosition(create_comm_t*, turret_comm_t*);
 void signal_interrupt(int);
 int whereToTurn(float[]);

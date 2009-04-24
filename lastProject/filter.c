@@ -16,7 +16,10 @@ filter_t *firFilterCreate()
   	filter_t *f = malloc(sizeof(filter_t));
   	for (i=0; i<TAPS; i++) {
     		f->samples[i] = 0;
-    		f->coefficients[i] = 1.0/(float) TAPS; // user must set coef's
+				if(i == 0){
+    			f->coefficients[i] = 1.0;
+				}
+    		f->coefficients[i] = 1.0/(float) TAPS;
   	}
   	f->next_sample = 0;
 	return f;

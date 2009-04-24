@@ -105,7 +105,16 @@ int main(int argc, const char **argv)
 				probArray[2] = 0.0;
 			}
 			int dir = whereToTurn(probArray);
-			MoveToNeighboringCell(c,r,dir);
+			if(dir == 0){
+				angle = 0.0;
+			}
+			else if(dir == 1){
+				angle = -M_PI/2;
+			}
+			else if(dir == 2){
+				angle = M_PI/2;
+			}
+			if(MoveToNeighboringCell(c,r,angle)){break;}
 		}
 		i++;
 	}
@@ -127,10 +136,10 @@ int whereToTurn(float a[]){
 	int i = 0;
 	int direction = 0;
 	for(i = 0; i < sizeof(a); i++){
-		if(max>a[i]){
+		if(max<a[i]){
 			max = a[i];
+			direction = i;
 		}
-		direction = i;
 	}
 	return direction;
 }
@@ -168,26 +177,32 @@ void AdjustPosition(create_comm_t* rb, turret_comm_t* tr) {
  * distance: x-coordinate that robot should aim for;
  * angle: angle that robot should stay at;
  */
-int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int target)
+int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, float targetAngle)
 {
 	printf("in movetoneighbor function\n");
 	
 	position = create_get_sensors(device, TIMEOUT);
 	currPos.x = device->ox;
 	currPos.y = device->oy;
-	if(Turn(device,target)){
+	if(Turn(device,targetAngle)){
 		return 1;
 	}
-	if(target == 0 || target == 1){
-		distToMove = currPos.y + distBtwnCells;
+	if(targetAngle == 0.0){
+			distToMove = distBtwnCells + currPos.x;
 	}
-	else if(target == 3){
-		distToMove = currPos.x + distBtwnCells;
+	else if(targetAngle == -M_PI/2 || targetAngle == M_PI/2){
+		if(currPos.y < 0.0){
+			distToMove = distBtwnCells;
+		}
+		else{
+			distToMove = distBtwnCells + currPos.y;
+		}
 	}
-	else if(target == 2){
-		if(currPos.x < 0.0){distToMove = distBtwnCells;}
-		distToMove = distBtwnCells + currPos.x;
-	}
+	printf("distToMove: %f\n",distToMove);
+	int target = 0;
+	if(targetAngle == 0.0){target = 0;}
+	if(targetAngle == -M_PI/2){target = 1;}
+	if(targetAngle == M_PI/2){target = 2;}
 	printf("distToMove: %f\n",distToMove);
 	dist_error = error_tx(device, distToMove, target);
 	printf("dist_error: %f\n",dist_error);
@@ -198,7 +213,7 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 		printf("in move while loop\n");
 		position = create_get_sensors(device, TIMEOUT);
 		
-		dist_error = error_tx(device, distToMove, target);
+		dist_error = error_tx(device, distToMove, targetAngle);
 		printf("dist_error: %f\n", dist_error);
 		
 		vx = PID(dist_error);
@@ -224,11 +239,11 @@ int MoveToNeighboringCell(create_comm_t* device, turret_comm_t* turret, int targ
 	return 0;	
 }
 
-int Turn(create_comm_t* robot, int target) {
+int Turn(create_comm_t* robot, float target_angle) {
 	printf("in turn function\n");	
-
+	printf("target = %f\n", target_angle);
 	//get delta
-	if(target == 0){
+	/*if(target == 0){
 		target_angle = 0;
 	}
 	else if(target == 1){
@@ -236,7 +251,7 @@ int Turn(create_comm_t* robot, int target) {
 	}
 	else if(target == 2){
 		target_angle = M_PI/2;
-	}
+	}*/
 
 	// rotate bot by delta
 	angle_error = error_ta(robot, target_angle);
@@ -262,26 +277,32 @@ int Turn(create_comm_t* robot, int target) {
 /* WhatDoISee()
  */
 int* WhatDoISee(turret_comm_t* turr){
-	turret_get_sonar(turr);
-	float right = firFilter(filter_sonarR, turr->sonar[0]);
-	float left = firFilter(filter_sonarL, turr->sonar[1]);
-	turret_get_ir(turr);
-	float front = firFilter(filter_irF, turr->ir[1]);
-	
+	int j = 0;
+	float right = 0.0;
+	float left = 0.0;
+	float front = 0.0;
+	for(j = 0; j < 8; j++){
+		turret_get_sonar(turr);
+		right = firFilter(filter_sonarR, turr->sonar[0]);
+		left = firFilter(filter_sonarL, turr->sonar[1]);
+		turret_get_ir(turr);
+		front = firFilter(filter_irF, turr->ir[1]);
+	}
+
 	openDirs[0] = 1;	//front
 	openDirs[1] = 1;	//right
 	openDirs[2] = 1;	//left
-
+	//1 = open, 0 = wall
 	if(front < 45.0 && front > 0.0){
-		printf("sees front\n");
+		printf("sees front\nfront: %f\n",front);
 		openDirs[0] = 0;
 	}
 	if(right < 45.0 && right > 0.0){
-		printf("sees right\n");
+		printf("sees right\nright: %f\n",right);
 		openDirs[1] = 0;
 	}
 	if(left < 45.0 && left > 0.0){
-		printf("sees left\n");
+		printf("sees left\nleft: %f\n",left);
 		openDirs[2] = 0;
 	}
 
